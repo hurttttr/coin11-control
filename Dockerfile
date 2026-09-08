@@ -80,7 +80,7 @@ USER app
 
 # 生产环境配置
 # 注意：CORS_ORIGINS 不要设 "*"（应用层会因此强制关闭 allow_credentials）。
-# 请用 compose/.env 覆写为实际来源，例如 ["http://localhost:5173"]。
+# 请用 compose/.env 覆写为实际来源，例如 ["http://localhost:6173"]。
 # WS_AUTH_TOKEN / API_AUTH_TOKEN 同理：务必覆写为强随机值，不要使用应用弱默认值。
 ENV HOST=0.0.0.0 \
     PORT=8000 \

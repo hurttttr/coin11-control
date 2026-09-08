@@ -355,7 +355,7 @@ coin11-control-backend/
 HOST=0.0.0.0
 PORT=8000
 ADB_PATH=adb
-CORS_ORIGINS=["http://localhost:5173","http://127.0.0.1:5173"]
+CORS_ORIGINS=["http://localhost:6173","http://127.0.0.1:6173"]
 COIN11_TB_REPO_URL=https://github.com/czl0325/coin11-tb.git
 
 # 局域网网段覆盖值（可选）：自动探测失败或探测到非局域网网段时回退

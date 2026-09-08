@@ -63,7 +63,7 @@ def test_cors_policy_keeps_credentials_without_wildcard():
     import app.main as main_mod
 
     class _FakeSettings:
-        CORS_ORIGINS = ["http://localhost:5173", "http://127.0.0.1:5173"]
+        CORS_ORIGINS = ["http://localhost:6173", "http://127.0.0.1:6173"]
         WS_AUTH_TOKEN = "token"
         API_AUTH_TOKEN = None
         HOST = "127.0.0.1"
@@ -81,7 +81,7 @@ def _build_api_app(token: str | None) -> FastAPI:
     import app.main as main_mod
 
     class _FakeSettings:
-        CORS_ORIGINS = ["http://localhost:5173"]
+        CORS_ORIGINS = ["http://localhost:6173"]
         WS_AUTH_TOKEN = "coin11-control-token"
         API_AUTH_TOKEN = token
         HOST = "127.0.0.1"

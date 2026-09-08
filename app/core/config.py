@@ -27,8 +27,8 @@ class Settings(BaseSettings):
 
     # CORS 允许的来源（JSON 数组字符串；pydantic-settings 对 list[str] 自动做 JSON 解析）
     CORS_ORIGINS: list[str] = [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
+        "http://localhost:6173",
+        "http://127.0.0.1:6173",
     ]
 
     # WebSocket 鉴权 Token（本地单用户场景用简单 token）
