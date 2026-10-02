@@ -7,11 +7,9 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm ci
 COPY frontend/ ./
-# 已知技术债：这里用 npx vite build 直接绕过了 vue-tsc 类型检查，
-# 因为 frontend/src/__tests__/*.spec.ts 存在类型错误会导致 vue-tsc 失败。
-# 正确的修法是在 frontend 的 tsconfig 中把 __tests__ 从 build 排除
-# （或修复测试文件类型），frontend 是独立 submodule，不在本仓库修改范围内。
-RUN npx vite build
+# 完整构建 = vue-tsc 类型检查 + vite build。frontend 已并入 monorepo（frontend/），
+# 类型错误由前端侧修复，这里不再用 npx vite build 绕过检查。
+RUN npm run build
 
 # ============================================
 # Stage 2: Backend (FastAPI)
@@ -40,7 +38,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # ---- coin11-tb 脚本运行时依赖 ----
 # coin11_tb/ 目录由 repo_manager 在运行时 clone（被 .gitignore 忽略，构建时不存在），
-# 因此无法在构建期 COPY 它的 requirements.txt，这里显式声明。
+# 因此无法在构建期 COPY 它的 requirements.txt，这里用 requirements-coin11tb-docker.txt
+#（由 pyproject.toml 的 coin11tb 依赖组经 uv export 生成，torch 除外）。
 #
 # ⚠️ 这些依赖是【必需】的，不是可选项：
 #    coin11_tb/utils.py 在模块顶层 import cv2/numpy/ddddocr/torch/easyocr/PIL/uiautomator2，
@@ -48,12 +47,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 #    全部 14 个任务脚本 + launcher 都 import utils。
 #    少装任何一个 → 容器内所有脚本在 import 阶段就 ImportError，任务 100% 失败。
 #
-# 代价：torch + easyocr 模型使镜像增大约 1.5~2GB（已用 CPU-only 源，比 CUDA 轮子省 ~2GB）。
+# torch/torchvision 必须先从 CPU-only 源安装（PyPI 默认是 CUDA 构建，会连带
+# nvidia-* 依赖多占 ~2GB）；预装后，requirements 文件中的同名钉版即视为已满足。
 # 若只需要 API/设备管理而不在容器内跑脚本，用 --build-arg WITH_SCRIPT_DEPS=0 构建精简镜像。
 ARG WITH_SCRIPT_DEPS=1
 COPY requirements-coin11tb-docker.txt ./
 RUN if [ "$WITH_SCRIPT_DEPS" = "1" ]; then \
-        pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu torch==2.12.1 && \
+        pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu \
+            torch==2.14.1 torchvision==0.29.1 && \
         pip install --no-cache-dir -r requirements-coin11tb-docker.txt; \
     else \
         echo "[build] WITH_SCRIPT_DEPS=0 —— 跳过脚本依赖，容器内无法执行 coin11-tb 任务"; \
@@ -88,14 +89,10 @@ ENV HOST=0.0.0.0 \
     COIN11_TB_PATH=/app/data/coin11_tb \
     AUTO_TASK_SETTINGS_FILE=/app/data/auto_task_settings.json
 
-# 健康检查：依赖 Python 而非 curl（slim 镜像不带 curl）
+# 健康检查：镜像基于 python:3.12-slim 无 curl，用 python 探活（与 docker-compose healthcheck 同款）
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
     CMD ["python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=4).status==200 else 1)"]
 
 EXPOSE 8000
-
-# 镜像基于 python:3.12-slim 无 curl，用 python 探活（与 docker-compose healthcheck 同款）
-HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3).status==200 else 1)"
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

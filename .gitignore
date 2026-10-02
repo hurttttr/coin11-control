@@ -3,16 +3,21 @@ __pycache__/
 *.pyc
 *.pyo
 *.egg-info/
+# dist/ 只匹配名为 dist 的目录（前端构建产物 frontend/dist 等），不会误伤 frontend-dist/
 dist/
 build/
 .venv/
 env/
 venv/
-uv.lock
+# uv.lock 必须入库（新电脑一键可跑的版本锁定依据），此处不再忽略
 coin11_tb/
 .test-tmp/
 .pytest_cache/
 .mypy_cache/
+# 前端构建产物（由 setup.bat 构建生成，后端 SPA 托管挂载点）
+frontend-dist/
+# Node 依赖（frontend/ 并入后生效）
+node_modules/
 # 运行时生成的自动任务配置（本机用户选择，不入库）
 auto_task_settings.json
 # 运行时任务队列状态（含本机路径，不入库）

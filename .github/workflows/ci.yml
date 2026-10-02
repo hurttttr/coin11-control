@@ -16,10 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Checkout (含 frontend submodule)
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
           fetch-depth: 0
 
       - name: Setup Python
@@ -38,14 +37,16 @@ jobs:
         run: pytest -q
 
   # ---------- 前端测试 ----------
+  # 前端源码位于仓库内 frontend/（monorepo）；源码并入前该 job 自动跳过，
+  # 并入后（存在 frontend/package-lock.json）自动生效。
   frontend-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    if: ${{ hashFiles('frontend/package-lock.json') != '' }}
     steps:
-      - name: Checkout (含 frontend submodule)
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: recursive
           fetch-depth: 0
 
       - name: Setup Node
