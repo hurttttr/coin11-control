@@ -4,7 +4,7 @@
 
 **多设备安卓自动化任务控制平台**
 
-[![Version](https://img.shields.io/badge/版本-v0.3.1-00f0ff?style=flat-square)](https://github.com/hurttttr/coin11-control-backend/releases)
+[![Version](https://img.shields.io/badge/版本-v0.4.0-00f0ff?style=flat-square)](https://github.com/hurttttr/coin11-control-backend/releases)
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=flat-square&logo=python&logoColor=white)]()
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)]()
 [![Vue 3](https://img.shields.io/badge/Frontend-Vue_3-4FC08D?style=flat-square&logo=vue.js&logoColor=white)]()
@@ -101,6 +101,16 @@ sudo apt install android-tools-adb
 
 ### 安装 & 启动
 
+**新电脑三步走（Windows）**：
+
+1. 安装 [uv](https://docs.astral.sh/uv/)：`winget install astral-sh.uv`（或官方脚本 `powershell -c "irm https://astral.sh/uv/install.ps1 | iex"`）
+2. 双击 **`setup.bat`** — 环境一键初始化：`uv sync` 自动安装 CPython 3.12 并创建 .venv（含 coin11-tb 任务脚本全部依赖）→ 构建前端产出 `frontend-dist/` → 检查 adb / tesseract。幂等可重复运行。
+3. 双击 **`start.bat`** — 启动服务并自动打开浏览器。前后端同端口：**http://127.0.0.1:8000**（页面 + API + 文档 `/docs`）。
+
+**开发模式**：双击 `dev.bat`（并行：后端 uvicorn --reload 8000 + 前端 vite dev 6173，改前端热更新）；或两个终端分别跑 `uv run uvicorn app.main:app --reload --host 127.0.0.1 --port 8000` 与 `cd frontend && npm run dev`。
+
+**生产模式（单端口）**：`start.bat` / Docker 均为单端口 8000 —— 后端 uvicorn 托管 `frontend-dist/`（SPA history 路由回退 index.html），API 走 `/api/*`、WS 走 `/ws/*`，无需单独起前端服务。
+
 ```bash
 git clone https://github.com/hurttttr/coin11-control-backend.git
 cd coin11-control-backend
@@ -114,11 +124,6 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 访问 **http://127.0.0.1:8000/docs** 查看 Swagger 文档。
 
-> 💡 Windows 用户一键可跑：
-> - 双击 **`setup.bat`** — 环境一键初始化（检查/安装 uv → `uv sync` 自动装 Python 3.12 + 全部依赖 → 前端构建 → adb/tesseract 检查），幂等可重复运行；
-> - 双击 **`start.bat`** — 启动服务（uvicorn 127.0.0.1:8000，托管 frontend-dist 页面）并自动打开浏览器；
-> - 双击 **`dev.bat`** — 开发模式（后端 reload + 前端 vite dev 6173 并行）。
->
 > Python 钉在 3.12（任务脚本依赖的 torch/easyocr 等二进制 wheel 不支持 3.13+，这是"新电脑跑不起来"的头号原因）；
 > 常规依赖走清华镜像，torch/torchvision 走 PyTorch 官方 CPU 源（+cpu 构建，避免数 GB 的 CUDA 轮子）。
 
@@ -218,6 +223,17 @@ docker build --build-arg WITH_SCRIPT_DEPS=0 -t coin11-control:slim .
 ---
 
 ## 📦 版本发布说明
+
+### v0.4.0 (2026-10-02)
+
+> 🔀 前端并入 monorepo + 新电脑一键可跑
+
+- 📦 **前端源码并入仓库内 `frontend/`**，废弃 submodule（原 `sync-frontend-submodule` 工作流删除，CI/Docker 改用仓库内路径）
+- 🏃 **一键脚本**：`setup.bat`（环境初始化：uv → Python 3.12 + 依赖 → 前端构建）/ `start.bat`（启动 + 自动开浏览器）/ `dev.bat`（后端 reload + 前端 vite dev 并行）
+- 🐍 **Python 钉 3.12**（`.python-version` + `requires-python`）：任务脚本依赖的 torch/easyocr 二进制 wheel 不支持 3.13+，根治"新电脑跑不起来"
+- 🧱 **脚本依赖收入 coin11tb 依赖组**（uv 默认安装）：按上游 coin11-tb 钉版对齐，torch 走 PyTorch CPU 源（2.14.1+cpu），常规依赖走清华镜像
+- 📄 requirements*.txt 全部改为 `uv export` 生成（pyproject 单一来源）
+- 🖥️ **生产单端口 8000**：uvicorn 托管 `frontend-dist/`（vite `outDir` 直产仓库根），Docker 构建还原完整 `npm run build`（含 vue-tsc）
 
 ### v0.3.1 (2026-08-26)
 
