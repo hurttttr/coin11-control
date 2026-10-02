@@ -7,7 +7,6 @@ Windows 下强制 stdout 使用 UTF-8 编码，避免中文日志在 GBK 控制�
 import logging
 import os
 import sys
-from typing import Optional
 
 # 控制台/日志格式：时间 | 级别 | 模块 | 消息
 _DEFAULT_FORMAT = "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
@@ -17,7 +16,7 @@ _DEFAULT_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 _configured = False
 
 
-def setup_logging(level: Optional[str] = None) -> None:
+def setup_logging(level: str | None = None) -> None:
     """初始化全局日志配置（幂等）
 
     Args:

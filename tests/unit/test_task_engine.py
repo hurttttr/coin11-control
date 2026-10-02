@@ -16,7 +16,6 @@
 import asyncio
 import os
 import shutil
-import sys
 import time
 
 import pytest

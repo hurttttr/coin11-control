@@ -3,17 +3,17 @@ API v1 路由聚合
 """
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
 from app.api.v1.devices import router as devices_router
 from app.api.v1.tasks import router as tasks_router
 from app.api.v1.update import router as update_router
-from app.services.task_engine import task_engine
-from app.services.device_manager import device_manager
-from app.schemas.device import BatchTaskCreateRequest, BatchDeviceRequest
+from app.schemas.device import BatchDeviceRequest, BatchTaskCreateRequest
 from app.services.auto_task_settings import auto_task_settings
+from app.services.device_manager import device_manager
 from app.services.queue_control import start_device_queue
+from app.services.task_engine import task_engine
 
 logger = logging.getLogger(__name__)
 

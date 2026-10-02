@@ -25,7 +25,7 @@ class AutoTaskSettings:
             return self._cache
         if os.path.isfile(SETTINGS_FILE):
             try:
-                with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
+                with open(SETTINGS_FILE, encoding="utf-8") as f:
                     data = json.load(f)
                     self._cache = data.get("auto_tasks", [])
                     return self._cache

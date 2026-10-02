@@ -3,9 +3,9 @@
 """
 from fastapi import APIRouter, HTTPException
 
-from app.schemas.device import TaskCreateRequest, QueueReorderRequest
-from app.services.task_engine import task_engine
+from app.schemas.device import QueueReorderRequest, TaskCreateRequest
 from app.services.queue_control import start_device_queue
+from app.services.task_engine import task_engine
 
 router = APIRouter(prefix="/devices/{device_id}/queue", tags=["tasks"])
 

@@ -10,7 +10,6 @@ import logging
 import re
 import subprocess
 import time
-from typing import Optional
 
 from app.core.config import get_settings
 
@@ -26,7 +25,7 @@ class DeviceManager:
 
     def __init__(self):
         # (cached_at, devices) 缓存；None 表示无缓存
-        self._devices_cache: Optional[tuple[float, list[dict]]] = None
+        self._devices_cache: tuple[float, list[dict]] | None = None
 
     @property
     def settings(self):
@@ -163,7 +162,7 @@ class DeviceManager:
         success = "successfully paired" in msg.lower() or "配对成功" in msg
         return {"success": success, "message": msg}
 
-    async def get_device_info(self, serial: str) -> Optional[dict]:
+    async def get_device_info(self, serial: str) -> dict | None:
         """
         获取单台设备的详细信息
         通过 adb -s <serial> shell getprop 获取型号和 Android 版本

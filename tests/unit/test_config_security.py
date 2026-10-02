@@ -30,9 +30,8 @@ with open(_EMPTY_TASKS, "w", encoding="utf-8") as _f:
 
 import logging
 
-from fastapi import FastAPI, APIRouter
+from fastapi import APIRouter, FastAPI
 from fastapi.testclient import TestClient
-
 
 # ---------- CORS 一致性 ----------
 

@@ -8,7 +8,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-
 # /api/health 豁免：即使启用鉴权，健康检查也无需 token（供负载均衡/探活使用）
 _AUTH_EXEMPT_PATHS = {"/api/health"}
 

@@ -7,7 +7,6 @@ git 子进程逻辑统一走 app.services.git_ops（与 repo_manager 共享）�
 
 import logging
 from datetime import datetime
-from typing import Optional
 
 from app.core.config import get_settings
 from app.services import git_ops
@@ -39,7 +38,7 @@ class VersionManager:
     """版本管理服务 — Git 更新检测与拉取"""
 
     def __init__(self):
-        self._last_check: Optional[UpdateCheckResult] = None
+        self._last_check: UpdateCheckResult | None = None
 
     @property
     def settings(self):

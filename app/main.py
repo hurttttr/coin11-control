@@ -5,11 +5,9 @@ import asyncio
 import logging
 import os
 import secrets
-import sys
 from contextlib import asynccontextmanager
 from functools import partial
 from importlib import metadata
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -18,15 +16,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.api.v1.router import router as v1_router
 from app.core.config import Settings, get_settings
 from app.core.logging_config import setup_logging
-from app.api.v1.router import router as v1_router
-from app.services.repo_manager import RepoManager, repo_manager as global_repo_manager
-from app.services.websocket_manager import ws_manager
-from app.services.screen_capture import screen_capture
-from app.services.task_engine import task_engine
 from app.services.auto_task_runner import auto_task_watcher
 from app.services.queue_control import SCREENCAST_FPS
+from app.services.repo_manager import RepoManager
+from app.services.screen_capture import screen_capture
+from app.services.task_engine import task_engine
+from app.services.websocket_manager import ws_manager
 
 settings = get_settings()
 
@@ -57,7 +55,7 @@ def _tokens_equal(provided: str, expected: str) -> bool:
     return secrets.compare_digest(provided.encode("utf-8"), expected.encode("utf-8"))
 
 
-def verify_api_token(cfg: Optional[Settings] = None):
+def verify_api_token(cfg: Settings | None = None):
     """
     构造 API 鉴权依赖（供 include_router(dependencies=[...]) 使用）。
 
@@ -96,7 +94,7 @@ def verify_api_token(cfg: Optional[Settings] = None):
 # ---------- CORS 一致性处理 ----------
 
 
-def build_cors_policy(cfg: Optional[Settings] = None) -> dict:
+def build_cors_policy(cfg: Settings | None = None) -> dict:
     """
     计算 CORS 中间件参数。
 
@@ -175,7 +173,7 @@ class SPAStaticFiles(StaticFiles):
 
 def safemount_frontend_dist(
     app: FastAPI,
-    frontend_dist: Optional[str] = None,
+    frontend_dist: str | None = None,
 ) -> bool:
     """
     挂载前端静态目录（存在时）。
@@ -307,7 +305,7 @@ app.include_router(v1_router, dependencies=[verify_api_token(settings)])
 
 
 @app.websocket("/ws/device/{device_id}")
-async def device_websocket(websocket: WebSocket, device_id: str, token: Optional[str] = Query(default=None)):
+async def device_websocket(websocket: WebSocket, device_id: str, token: str | None = Query(default=None)):
     """
     设备实时 WebSocket 连接
     推送: screenshot (base64), log (文本), status (任务状态)

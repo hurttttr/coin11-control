@@ -8,7 +8,7 @@
 import asyncio
 import logging
 import subprocess
-from typing import Callable
+from collections.abc import Callable
 
 from app.core.config import get_settings
 

@@ -14,11 +14,11 @@ import time
 import traceback
 import uuid
 from collections import defaultdict, deque
+from collections.abc import Callable
 from datetime import datetime
-from typing import Callable, Optional
 
 from app.core.config import get_settings
-from app.services.device_selector_patch import create_launcher_script, cleanup_launcher
+from app.services.device_selector_patch import cleanup_launcher, create_launcher_script
 
 logger = logging.getLogger(__name__)
 
@@ -44,16 +44,16 @@ class Task:
         self.status = "pending"  # pending / running / completed / failed
         self.position = 0
         self.created_at = datetime.now().isoformat()
-        self.started_at: Optional[str] = None
-        self.finished_at: Optional[str] = None
+        self.started_at: str | None = None
+        self.finished_at: str | None = None
         self.log_lines: deque[str] = deque(maxlen=self.MAX_LOG_LINES)
         # 当前任务对应的子进程句柄（由 _execute_task 填充，用于终止进程树）
-        self._process: Optional[subprocess.Popen] = None
+        self._process: subprocess.Popen | None = None
         # 子进程是否以独立会话启动（POSIX 上决定能否用 killpg 整组终止）。
         # Popen 不保留 start_new_session 参数，必须由启动方自己记录。
         self._new_session: bool = False
         # 后台终止任务句柄（stop_queue 需等待它落地）
-        self._termination_task: Optional[asyncio.Task] = None
+        self._termination_task: asyncio.Task | None = None
 
     def to_dict(self) -> dict:
         """转换为可序列化的字典（与 TaskInfo schema 兼容）"""
@@ -74,11 +74,11 @@ class Task:
 class TaskEngine:
     """任务执行引擎 — subprocess + 队列调度"""
 
-    def __init__(self, task_timeout: Optional[float] = DEFAULT_TASK_TIMEOUT):
+    def __init__(self, task_timeout: float | None = DEFAULT_TASK_TIMEOUT):
         self.task_timeout = task_timeout  # 单任务执行超时（秒），None 表示不限制
         self._queues: dict[str, list[Task]] = defaultdict(list)
-        self._running: dict[str, Optional[asyncio.Task]] = {}
-        self._current_task: dict[str, Optional[Task]] = {}
+        self._running: dict[str, asyncio.Task | None] = {}
+        self._current_task: dict[str, Task | None] = {}
 
     @property
     def settings(self):
@@ -201,7 +201,7 @@ class TaskEngine:
         self,
         task: Task,
         status: str,
-        status_callback: Optional[Callable],
+        status_callback: Callable | None,
         device_id: str,
     ) -> None:
         """标记任务结束：写入状态/时间并通知回调（幂等，回调走事件循环调度）"""
@@ -306,8 +306,8 @@ class TaskEngine:
         self,
         device_id: str,
         task: Task,
-        log_callback: Optional[Callable] = None,
-        timeout: Optional[float] = None,
+        log_callback: Callable | None = None,
+        timeout: float | None = None,
     ) -> str:
         """
         执行单个任务脚本（含超时控制）。
@@ -317,8 +317,8 @@ class TaskEngine:
         - timeout: 本任务执行超时（秒），None 表示不限制。
           由 runner 在启动每个任务前显式快照传入，避免任务间串读共享状态。
         """
-        launcher_path: Optional[str] = None
-        daemon: Optional[asyncio.Task] = None
+        launcher_path: str | None = None
+        daemon: asyncio.Task | None = None
         # POSIX 上以独立会话启动，才能用 killpg 终止 launcher 派生的整棵进程树
         _new_session = sys.platform != "win32"
 
@@ -402,7 +402,7 @@ class TaskEngine:
                 else:
                     await asyncio.shield(daemon)
                 return "ok"
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.warning(
                     "任务执行超时: device=%r task=%s 超时=%ss",
                     device_id, task.id, timeout,
@@ -429,8 +429,8 @@ class TaskEngine:
     async def start_queue(
         self,
         device_id: str,
-        log_callback: Optional[Callable] = None,
-        status_callback: Optional[Callable] = None,
+        log_callback: Callable | None = None,
+        status_callback: Callable | None = None,
     ) -> bool:
         """
         按 FIFO 顺序执行队列中的任务

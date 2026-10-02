@@ -16,11 +16,10 @@
 """
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from app.core.constants import DeviceStatus, ConnectionType, TaskStatus
+from app.core.constants import ConnectionType, DeviceStatus, TaskStatus
 
 
 class DeviceInfo(BaseModel):
@@ -46,7 +45,7 @@ class DevicePairRequest(BaseModel):
 class DeviceConnectResult(BaseModel):
     """设备连接结果"""
     success: bool
-    device: Optional[DeviceInfo] = None
+    device: DeviceInfo | None = None
     message: str = ""
 
 
@@ -59,8 +58,8 @@ class TaskInfo(BaseModel):
     status: TaskStatus = Field(TaskStatus.PENDING, description="任务状态")
     position: int = Field(0, description="队列位置")
     created_at: datetime = Field(..., description="创建时间")
-    started_at: Optional[datetime] = Field(None, description="开始时间")
-    finished_at: Optional[datetime] = Field(None, description="完成时间")
+    started_at: datetime | None = Field(None, description="开始时间")
+    finished_at: datetime | None = Field(None, description="完成时间")
     log: str = Field("", description="执行日志")
 
 

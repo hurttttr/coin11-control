@@ -11,7 +11,6 @@ import asyncio
 import logging
 import os
 import subprocess
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +90,7 @@ async def detect_default_branch(repo_path: str) -> str:
 
 
 async def fetch(
-    repo_path: str, branch: Optional[str] = None, timeout: int = 30
+    repo_path: str, branch: str | None = None, timeout: int = 30
 ) -> tuple[str, str, int]:
     """git fetch origin [branch] —— 失败不抛异常，由调用方自行判断"""
     if branch:

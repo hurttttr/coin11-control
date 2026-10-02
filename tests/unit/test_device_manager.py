@@ -5,7 +5,6 @@ device_manager 单元测试 — 不调用真实 adb，全部通过 monkeypatch �
 
 from app.services.device_manager import DeviceManager
 
-
 # ---------- _parse_devices_output: 纯函数解析 ----------
 
 

@@ -28,8 +28,8 @@ from app.services.auto_task_runner import (
     retain_devices,
     run_auto_tasks,
 )
-from app.services.screen_capture import screen_capture as sc_capture
 from app.services.auto_task_settings import auto_task_settings as real_settings
+from app.services.screen_capture import screen_capture as sc_capture
 
 SERIAL = "FAKE-SERIAL-01"
 AUTO_TASKS = ["test.py", "淘宝芭芭农场.py"]
