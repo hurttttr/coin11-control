@@ -25,6 +25,11 @@ if (-not (Test-Path (Join-Path $Root "frontend-dist\index.html"))) {
                 (Test-Path (Join-Path $Root "frontend\package.json"))
     if ($canBuild) {
         Write-Host "[start] frontend-dist 缺失 —— 自动构建前端..." -ForegroundColor Yellow
+        $envLocal = Join-Path $Root "frontend\.env.local"
+        if (-not (Test-Path $envLocal)) {
+            Copy-Item (Join-Path $Root "frontend\.env.example") $envLocal
+            Write-Host "[start] frontend/.env.local 缺失 —— 已由 .env.example 生成" -ForegroundColor DarkGray
+        }
         Push-Location (Join-Path $Root "frontend")
         try {
             npm ci

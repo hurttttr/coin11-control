@@ -62,6 +62,11 @@ $distTarget  = Join-Path $Root "frontend-dist"
 if (Test-Path (Join-Path $frontendDir "package.json")) {
     if ($nodeOk) {
         Write-Step "构建前端 (frontend/ -> frontend-dist/)"
+        $envLocal = Join-Path $frontendDir ".env.local"
+        if (-not (Test-Path $envLocal)) {
+            Copy-Item (Join-Path $frontendDir ".env.example") $envLocal
+            Write-Ok "frontend/.env.local 缺失 —— 已由 .env.example 生成（WS token 取默认值）"
+        }
         Push-Location $frontendDir
         try {
             npm ci
