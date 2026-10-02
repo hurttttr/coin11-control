@@ -224,9 +224,10 @@ docker build --build-arg WITH_SCRIPT_DEPS=0 -t coin11-control:slim .
 
 ## 📦 版本发布说明
 
-### v0.4.0 (2026-10-02)
+> 各版本说明已折叠，点击版本行展开详情。
 
-> 🔀 前端并入 monorepo + 新电脑一键可跑
+<details open>
+<summary><strong>v0.4.0 (2026-10-02)</strong> — 🔀 前端并入 monorepo + 新电脑一键可跑</summary>
 
 - 📦 **前端源码并入仓库内 `frontend/`**，废弃 submodule（原 `sync-frontend-submodule` 工作流删除，CI/Docker 改用仓库内路径）
 - 🏃 **一键脚本**：`setup.bat`（环境初始化：uv → Python 3.12 + 依赖 → 前端构建）/ `start.bat`（启动 + 自动开浏览器）/ `dev.bat`（后端 reload + 前端 vite dev 并行）
@@ -236,9 +237,10 @@ docker build --build-arg WITH_SCRIPT_DEPS=0 -t coin11-control:slim .
 - 🖥️ **生产单端口 8000**：uvicorn 托管 `frontend-dist/`（vite `outDir` 直产仓库根），Docker 构建还原完整 `npm run build`（含 vue-tsc）
 - 🔧 CI 前端 job 还原完整检查链（lint → typecheck → build → test，vue-tsc 已全绿）
 
-### v0.3.1 (2026-08-26)
+</details>
 
-> 🚀 远程连接/ADB 配对输入优化 + 死代码清理
+<details>
+<summary><strong>v0.3.1 (2026-08-26)</strong> — 🚀 远程连接/ADB 配对输入优化 + 死代码清理</summary>
 
 **✨ 新功能：**
 - 🌐 **网段自动预填** — 新增 `GET /api/devices/network-info`，自动探测本机局域网网段并预填到连接/配对输入框；`LAN_SUBNET_OVERRIDE` 可兜底多网卡/探测失败场景
@@ -249,9 +251,10 @@ docker build --build-arg WITH_SCRIPT_DEPS=0 -t coin11-control:slim .
 - ♻️ 移除手机扫码二维码配对（前端入口已移除，后端 `pair-qr` API 一并删除，`qrcode` 依赖移除）
 - 🗑️ 删除死代码 `state_store.py` 及其测试（生产零引用）
 
-### v0.3.0 (2026-08-25)
+</details>
 
-> 🛠️ 稳定性与安全加固：修复任务停止、孤儿进程、批量截图错发等核心缺陷；测试从 1 个增至 46 个
+<details>
+<summary><strong>v0.3.0 (2026-08-25)</strong> — 🛠️ 稳定性与安全加固：修复任务停止、孤儿进程、批量截图错发等核心缺陷；测试从 1 个增至 46 个</summary>
 
 **🐛 关键修复：**
 - ⏹️ **停止队列真正生效** — 此前取消信号被吞掉，点「停止」后队列仍会继续启动下一个脚本；现在取消会正确终止整个队列
@@ -286,9 +289,10 @@ docker build --build-arg WITH_SCRIPT_DEPS=0 -t coin11-control:slim .
 - 前端将截图与日志混存于同一 2000 条缓冲区，2 FPS 截图约 16 分钟后会把日志挤出
 - 前端 WebSocket 重连 5 次耗尽后不会自愈，需刷新页面
 
-### v0.2.1 (2026-08-14)
+</details>
 
-> 🐛 修复：设备自动任务不再依赖打开网页，后端启动即自动工作
+<details>
+<summary><strong>v0.2.1 (2026-08-14)</strong> — 🐛 修复：设备自动任务不再依赖打开网页，后端启动即自动工作</summary>
 
 **修复：**
 - 🤖 **后台设备监视** — 新增 `AutoTaskWatcher` 后台循环，后端启动后每 5 秒自动扫描 ADB 设备，新设备上线自动入队并启动已配置的自动任务，**无需打开网页 / 前端轮询**
@@ -297,9 +301,10 @@ docker build --build-arg WITH_SCRIPT_DEPS=0 -t coin11-control:slim .
 **增强：**
 - 🗂️ 自动任务触发逻辑抽离为独立服务 `app/services/auto_task_runner.py`，HTTP 触发与后台触发共用同一去重逻辑
 
-### v0.2.0 (2026-07-23)
+</details>
 
-> 🎉 添加设备连接自动运行任务 + ADB 无线配对
+<details>
+<summary><strong>v0.2.0 (2026-07-23)</strong> — 🎉 添加设备连接自动运行任务 + ADB 无线配对</summary>
 
 **新功能：**
 - 🤖 **设备连接自动运行任务** — 设置页面配置脚本列表，设备上线时自动入队并启动
@@ -312,15 +317,18 @@ docker build --build-arg WITH_SCRIPT_DEPS=0 -t coin11-control:slim .
 - 🏃 一键启动脚本（`start-coin11.bat` / `start-coin11.ps1`，v0.4.0 起改为 `setup.bat` / `start.bat` / `dev.bat`）
 - 📝 前端子模块化，`git clone --recursive` 一次拉取全部代码（v0.4.0 起前端并入 monorepo `frontend/`，普通 clone 即可）
 
-### v0.1.0 (2026-07-21)
+</details>
 
-> 🎬 初始版本
+<details>
+<summary><strong>v0.1.0 (2026-07-21)</strong> — 🎬 初始版本</summary>
 
 - 基础设备管理（列表/连接/断开/详情）
 - 任务队列编排（入队/出队/拖拽重排/启动/停止）
 - WebSocket 实时日志 & 截图流
 - coin11-tb 仓库自动拉取与版本更新
 - 前端 Vue 3 + Pinia + Vite
+
+</details>
 
 ---
 
