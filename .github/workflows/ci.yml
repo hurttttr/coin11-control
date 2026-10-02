@@ -37,12 +37,12 @@ jobs:
         run: pytest -q
 
   # ---------- 前端测试 ----------
-  # 前端源码位于仓库内 frontend/（monorepo）；源码并入前该 job 自动跳过，
-  # 并入后（存在 frontend/package-lock.json）自动生效。
+  # 前端源码位于仓库内 frontend/（monorepo），每次 push 运行完整检查链。
+  # 注意：GitHub 表达式不允许在 job 级 if 中使用 hashFiles（仅 step 级可用），
+  # 之前的文件存在性守卫会导致整个 workflow 加载失败（0 job 启动失败）。
   frontend-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: ${{ hashFiles('frontend/package-lock.json') != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
