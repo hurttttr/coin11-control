@@ -9,14 +9,14 @@ echo.
 
 REM ------ Start Backend ------
 echo [1/2] Starting backend (port 8000)...
-start "Coin11-Backend" cmd /c "cd /d D:\lenovo\Documents\Code\coin11-control-backend && set PYTHONPATH=.&& .venv\Scripts\python.exe app\main.py"
+start "Coin11-Backend" cmd /c "cd /d D:\YY\Documents\Code\coin11-control-backend && set PYTHONPATH=.&& .venv\Scripts\python.exe app\main.py"
 echo Backend started.
 
 timeout /t 3 /nobreak >nul
 
 REM ------ Start Frontend ------
 echo [2/2] Starting frontend (port 5173)...
-start "Coin11-Frontend" cmd /c "cd /d D:\lenovo\Documents\Code\coin11-control-frontend && npm run dev"
+start "Coin11-Frontend" cmd /c "cd /d D:\YY\Documents\Code\coin11-control-frontend && npm run dev"
 echo Frontend started.
 
 echo.
