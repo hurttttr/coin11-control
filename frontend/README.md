@@ -106,7 +106,7 @@ npm run dev
 > **必须配置 `.env.local`**：`VITE_WS_TOKEN` 需与后端保持一致，源码中没有内置默认值。
 > 未配置时前端会在控制台报错并以空 token 发起连接，后端鉴权将失败，表现为设备画面与日志始终为空。
 
-> **提示**：开发服务器已配置代理，`/api/*` 请求转发至 `http://localhost:8000`，`/ws/*` 转发至 `ws://localhost:8000`。请确保后端 coin11-tb 服务已启动。
+> **提示**：开发服务器已配置代理，`/api/*` 请求转发至 `http://localhost:8000`，`/ws/*` 转发至 `ws://localhost:8000`。请确保后端服务已启动（仓库根 `dev.bat` / `start.bat`，或 `uv run uvicorn app.main:app --reload --port 8000`）。
 
 ### 可用脚本
 
@@ -463,7 +463,7 @@ Store 之间通过 `storeToRefs` 解构响应式数据，保持组件简洁。
 npm run test
 ```
 
-现有 11 个测试文件、167 个用例：
+现有 14 个测试文件、195 个用例：
 
 | 测试文件 | 覆盖范围 |
 |----------|----------|
@@ -492,7 +492,7 @@ ESLint 采用 flat config（`eslint.config.js`），以 `eslint-plugin-vue` 的 
 
 ### 持续集成
 
-`.github/workflows/ci.yml` 在 push 到 `main`/`master` 及所有 Pull Request 时依次执行：
+monorepo 的 `.github/workflows/ci.yml` 含 `frontend-tests` job（push 到 `main`/`master`、PR 及手动触发时运行；前端源码位于仓库 `frontend/`）：
 
 ```
 npm ci → npm run lint → npm run typecheck → npm run build → npm test
@@ -567,7 +567,7 @@ server {
 }
 ```
 
-> **提示**：生产部署时，`/api/` 和 `/ws/` 的反向代理需要指向后端 coin11-tb 服务。
+> **提示**：生产部署时，`/api/` 和 `/ws/` 的反向代理需要指向后端服务（coin11-control 的 uvicorn，默认 8000 端口）。
 
 ---
 

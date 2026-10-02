@@ -60,11 +60,22 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Run vitest
+      - name: Lint
         working-directory: frontend
-        # 只跑测试，不跑 npm run build：build 会执行 vue-tsc，
-        # 而 frontend __tests__ 存在类型错误导致 vue-tsc 当前必然失败（见 Dockerfile 注释）
-        run: npx vitest run
+        run: npm run lint
+
+      - name: Typecheck
+        working-directory: frontend
+        run: npm run typecheck
+
+      - name: Build
+        working-directory: frontend
+        # vue-tsc + vite build（__tests__ 类型错误已修复，恢复完整检查链）
+        run: npm run build
+
+      - name: Unit tests
+        working-directory: frontend
+        run: npm test
 
   # ---------- 静态检查（后端，基线） ----------
   lint:

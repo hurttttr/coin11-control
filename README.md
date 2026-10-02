@@ -72,7 +72,7 @@
 | **Python** ≥ 3.12 | 推荐使用 [uv](https://docs.astral.sh/uv/) |
 | **ADB** | Android Debug Bridge，需在 PATH 或 `.env` 配置 |
 | **Git** | coin11-tb 仓库自动拉取 |
-| **Node.js** ≥ 20（可选） | 仅本地开发前端时需要 |
+| **Node.js** ≥ 20（可选） | 构建前端产物 `frontend-dist/` 或本地开发前端时需要；缺失时 `setup.bat` / `start.bat` 会自动跳过并提示 |
 
 ### ADB 安装
 
@@ -104,7 +104,7 @@ sudo apt install android-tools-adb
 **新电脑三步走（Windows）**：
 
 1. 安装 [uv](https://docs.astral.sh/uv/)：`winget install astral-sh.uv`（或官方脚本 `powershell -c "irm https://astral.sh/uv/install.ps1 | iex"`）
-2. 双击 **`setup.bat`** — 环境一键初始化：`uv sync` 自动安装 CPython 3.12 并创建 .venv（含 coin11-tb 任务脚本全部依赖）→ 构建前端产出 `frontend-dist/` → 检查 adb / tesseract。幂等可重复运行。
+2. 双击 **`setup.bat`** — 环境一键初始化：`uv sync` 自动安装 CPython 3.12 并创建 .venv（含 coin11-tb 任务脚本全部依赖）→ 构建前端产出 `frontend-dist/`（需 Node 20+，缺失时跳过并给安装指引，之后 `start.bat` 检测到缺失也会自动补建）→ 检查 adb / tesseract。幂等可重复运行。
 3. 双击 **`start.bat`** — 启动服务并自动打开浏览器。前后端同端口：**http://127.0.0.1:8000**（页面 + API + 文档 `/docs`）。
 
 **开发模式**：双击 `dev.bat`（并行：后端 uvicorn --reload 8000 + 前端 vite dev 6173，改前端热更新）；或两个终端分别跑 `uv run uvicorn app.main:app --reload --host 127.0.0.1 --port 8000` 与 `cd frontend && npm run dev`。
@@ -234,6 +234,7 @@ docker build --build-arg WITH_SCRIPT_DEPS=0 -t coin11-control:slim .
 - 🧱 **脚本依赖收入 coin11tb 依赖组**（uv 默认安装）：按上游 coin11-tb 钉版对齐，torch 走 PyTorch CPU 源（2.14.1+cpu），常规依赖走清华镜像
 - 📄 requirements*.txt 全部改为 `uv export` 生成（pyproject 单一来源）
 - 🖥️ **生产单端口 8000**：uvicorn 托管 `frontend-dist/`（vite `outDir` 直产仓库根），Docker 构建还原完整 `npm run build`（含 vue-tsc）
+- 🔧 CI 前端 job 还原完整检查链（lint → typecheck → build → test，vue-tsc 已全绿）
 
 ### v0.3.1 (2026-08-26)
 
@@ -308,8 +309,8 @@ docker build --build-arg WITH_SCRIPT_DEPS=0 -t coin11-control:slim .
 
 **增强：**
 - 🐳 Docker 多阶段构建，支持 GitHub Actions 自动推送
-- 🏃 一键启动脚本（`start-coin11.bat` / `start-coin11.ps1`，v0.3.2 起改为 `setup.bat` / `start.bat` / `dev.bat`）
-- 📝 前端子模块化，`git clone --recursive` 一次拉取全部代码（v0.3.2 起前端并入 monorepo `frontend/`）
+- 🏃 一键启动脚本（`start-coin11.bat` / `start-coin11.ps1`，v0.4.0 起改为 `setup.bat` / `start.bat` / `dev.bat`）
+- 📝 前端子模块化，`git clone --recursive` 一次拉取全部代码（v0.4.0 起前端并入 monorepo `frontend/`，普通 clone 即可）
 
 ### v0.1.0 (2026-07-21)
 
@@ -352,7 +353,7 @@ coin11-control/
 │   └── schemas/device.py       # Pydantic 模型
 ├── coin11_tb/                  # coin11-tb 脚本仓库（运行时自动 clone）
 ├── frontend/                   # 前端源码（monorepo，本仓库内）
-├── frontend-dist/              # 前端构建产物（setup.bat 生成，已 gitignore）
+├── frontend-dist/              # 前端构建产物（setup.bat / start.bat 自动构建，已 gitignore）
 ├── tests/
 │   ├── unit/                   # 单元测试（7 个文件）
 │   └── integration/
@@ -400,15 +401,16 @@ LOG_LEVEL=INFO
 
 ### ⚠️ 关于 `WS_AUTH_TOKEN`
 
-**当前前端（submodule）硬编码了默认令牌 `coin11-control-token`。**
-如果把 `.env` 里的 `WS_AUTH_TOKEN` 改成其它值，后端会拒绝前端的 WebSocket 连接
-（close code 4001），表现为 **实时设备画面一直「等待画面传输」、日志不刷新** —— 而且
-页面上没有任何错误提示，只在浏览器 console 里有一行日志。
+前端令牌在**构建期**由 `frontend/.env.local` 的 `VITE_WS_TOKEN` 注入（`frontend/.env.example`
+默认 `coin11-control-token`，与后端默认一致）。若两端令牌不一致，后端会拒绝前端的
+WebSocket 连接（close code 4001），表现为 **实时设备画面一直「等待画面传输」、日志不刷新**
+—— 页面上没有任何错误提示，只在浏览器 console 里有一行日志。
 
 因此：
 - **本地使用（`HOST=127.0.0.1`，仅回环监听）**：保持默认值即可
-- **对外暴露**：必须同时修改前端的令牌，否则实时功能不可用。根治方式是让前端改为
-  构建期注入（`VITE_WS_TOKEN`）——该项待前端仓库配合，见上方「已知问题」
+- **对外暴露**：修改 `WS_AUTH_TOKEN` 后，需在 `frontend/.env.local` 设置
+  `VITE_WS_TOKEN=<新值>` 并重新构建前端（`cd frontend && npm run build`，或重跑 `setup.bat`），
+  否则实时功能不可用
 
 ### 🔒 对外暴露时的建议
 
@@ -418,7 +420,7 @@ LOG_LEVEL=INFO
 |------|------|
 | `HOST` | 尽量保持 `127.0.0.1`；需远程访问时置于反向代理之后 |
 | `API_AUTH_TOKEN` | 非回环监听时**必须**设置为强随机值 |
-| `WS_AUTH_TOKEN` | 改为强随机值（需同步前端） |
+| `WS_AUTH_TOKEN` | 改为强随机值，并同步前端 `VITE_WS_TOKEN` 后重新构建（见上节） |
 | `CORS_ORIGINS` | 明确列出来源，不要用 `"*"` |
 
 ---
