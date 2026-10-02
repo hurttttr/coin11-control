@@ -1,16 +1,16 @@
 <div align="center">
 
-# ⛓️ Coin11 Control Backend
+# ⛓️ Coin11 Control
 
 **多设备安卓自动化任务控制平台**
 
-[![Version](https://img.shields.io/badge/版本-v0.4.0-00f0ff?style=flat-square)](https://github.com/hurttttr/coin11-control-backend/releases)
+[![Version](https://img.shields.io/badge/版本-v0.4.0-00f0ff?style=flat-square)](https://github.com/hurttttr/coin11-control/releases)
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=flat-square&logo=python&logoColor=white)]()
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)]()
 [![Vue 3](https://img.shields.io/badge/Frontend-Vue_3-4FC08D?style=flat-square&logo=vue.js&logoColor=white)]()
 [![License](https://img.shields.io/badge/许可证-MIT-green?style=flat-square)]()
 
-> 基于 [coin11-tb](https://github.com/czl0325/coin11-tb) 二次开发 · 前端仓库： [coin11-control-frontend](https://github.com/hurttttr/coin11-control-frontend)
+> 基于 [coin11-tb](https://github.com/czl0325/coin11-tb) 二次开发 · 前端源码在本仓库 [frontend/](frontend/) 目录（monorepo 单服务部署）
 
 </div>
 
@@ -112,8 +112,8 @@ sudo apt install android-tools-adb
 **生产模式（单端口）**：`start.bat` / Docker 均为单端口 8000 —— 后端 uvicorn 托管 `frontend-dist/`（SPA history 路由回退 index.html），API 走 `/api/*`、WS 走 `/ws/*`，无需单独起前端服务。
 
 ```bash
-git clone https://github.com/hurttttr/coin11-control-backend.git
-cd coin11-control-backend
+git clone https://github.com/hurttttr/coin11-control.git
+cd coin11-control
 
 # 安装依赖（uv 按 .python-version 自动安装 CPython 3.12 并创建 .venv）
 uv sync
@@ -138,8 +138,8 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 docker compose build
 
 # 或从 GitHub Container Registry 拉取
-docker pull ghcr.io/hurttttr/coin11-control-backend:master
-docker run -d --name coin11-control -p 8000:8000 ghcr.io/hurttttr/coin11-control-backend:master
+docker pull ghcr.io/hurttttr/coin11-control:master
+docker run -d --name coin11-control -p 8000:8000 ghcr.io/hurttttr/coin11-control:master
 ```
 
 访问 **http://localhost:8000**（远程服务器替换为对应 IP）。
@@ -326,7 +326,7 @@ docker build --build-arg WITH_SCRIPT_DEPS=0 -t coin11-control:slim .
 ## 🏗️ 项目结构
 
 ```
-coin11-control-backend/
+coin11-control/
 ├── app/
 │   ├── main.py                 # FastAPI 入口 + WebSocket + SPA 托管 + 鉴权
 │   ├── core/

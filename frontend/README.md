@@ -1,11 +1,12 @@
 # Coin11-TB 控制平台前端
 
 > coin11-control-frontend — coin11-tb 自动化任务系统的 Web 控制面板前端
+> （已并入 [coin11-control](https://github.com/hurttttr/coin11-control) monorepo，位于仓库 `frontend/` 目录）
 
 基于 **Vue 3 + TypeScript + Vite** 构建，通过 **WebSocket** 与后端实时通信，提供 Android 设备管理、自动化任务调度、实时设备画面预览和日志查看等功能。
 
 > 本项目基于 [coin11-tb](https://github.com/czl0325/coin11-tb) 二次开发，后者提供了淘宝/支付宝/闲鱼等平台的自动化脚本。  
-> 配套后端项目：[coin11-control-backend](https://github.com/hurttttr/coin11-control-backend)
+> 配套后端项目：[coin11-control](https://github.com/hurttttr/coin11-control)（前后端已合并为单仓库，后端位于 `app/`）
 
 ---
 
@@ -42,7 +43,7 @@ Coin11-TB 控制平台前端是一个面向 Android 设备自动化测试/运维
 - **实时监控** — 通过 WebSocket 流式传输设备截图和日志，实现远程设备画面预览和实时日志输出
 - **全局管控** — 仪表盘提供设备统计和任务概览，全局任务列表支持跨设备管理
 
-后端服务为 [coin11-control-backend](https://github.com/hurttttr/coin11-control-backend)（Python + FastAPI），前端通过 REST API 和 WebSocket 与之通信。
+后端服务为 [coin11-control](https://github.com/hurttttr/coin11-control)（Python + FastAPI，与前端同仓库），前端通过 REST API 和 WebSocket 与之通信。
 
 ---
 
@@ -86,9 +87,9 @@ Coin11-TB 控制平台前端是一个面向 Android 设备自动化测试/运维
 ### 安装与启动
 
 ```bash
-# 1. 克隆仓库
-git clone https://github.com/hurttttr/coin11-control-frontend.git
-cd coin11-control-frontend
+# 1. 克隆 monorepo 仓库
+git clone https://github.com/hurttttr/coin11-control.git
+cd coin11-control/frontend
 
 # 2. 安装依赖
 npm install
@@ -123,7 +124,7 @@ npm run dev
 ## 项目结构
 
 ```
-coin11-control-frontend/
+frontend/（monorepo 仓库根为 coin11-control）
 ├── index.html                       # HTML 入口
 ├── vite.config.ts                   # Vite 配置（代理、别名、版本号注入）
 ├── tsconfig.json                    # TypeScript 配置
@@ -133,7 +134,7 @@ coin11-control-frontend/
 ├── .env.example                     # 环境变量示例（复制为 .env.local 使用）
 ├── public/                          # 静态资源
 │   └── vite.svg
-├── dist/                            # 构建输出
+├── （构建产物输出至仓库根 ../frontend-dist/，不在本目录）
 └── src/
     ├── main.ts                      # Vue 应用入口（创建 Pinia + Router）
     ├── App.vue                      # 根组件（挂载 AppLayout）
@@ -514,10 +515,10 @@ npm run build
 
 ### 构建产物
 
-构建结果输出至 `dist/` 目录：
+构建结果输出至**仓库根** `../frontend-dist/` 目录（由后端 uvicorn 单端口托管）：
 
 ```
-dist/
+frontend-dist/
 ├── index.html
 ├── vite.svg
 └── assets/
@@ -534,7 +535,7 @@ dist/
 
 ### 部署方式
 
-构建产物为纯静态文件，可部署至任意 HTTP 服务器（Nginx、Apache、Caddy 等）。
+构建产物为纯静态文件。**标准部署**是随 monorepo 单端口托管（`start.bat` / Docker，见仓库根 README）；以下为前端独立部署的备用方案（Nginx、Apache、Caddy 等）。
 
 **Nginx 配置示例：**
 

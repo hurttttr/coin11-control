@@ -1,5 +1,5 @@
 [project]
-name = "coin11-control-backend"
+name = "coin11-control"
 version = "0.4.0"
 description = "Coin11-TB 网页控制平台后端 API"
 readme = "README.md"

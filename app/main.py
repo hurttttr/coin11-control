@@ -37,7 +37,7 @@ _VERSION_FALLBACK = "0.4.0"
 
 def _resolve_version() -> str:
     try:
-        return metadata.version("coin11-control-backend")
+        return metadata.version("coin11-control")
     except metadata.PackageNotFoundError:
         return _VERSION_FALLBACK
 
