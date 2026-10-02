@@ -102,12 +102,11 @@ sudo apt install android-tools-adb
 ### 安装 & 启动
 
 ```bash
-# 克隆（含前端子模块）
-git clone --recursive https://github.com/hurttttr/coin11-control-backend.git
+git clone https://github.com/hurttttr/coin11-control-backend.git
 cd coin11-control-backend
 
-# 安装依赖
-uv venv && uv sync
+# 安装依赖（uv 按 .python-version 自动安装 CPython 3.12 并创建 .venv）
+uv sync
 
 # 启动（开发模式）
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
@@ -115,7 +114,13 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 访问 **http://127.0.0.1:8000/docs** 查看 Swagger 文档。
 
-> 💡 Windows 用户可直接双击 `start-coin11.bat` 一键启动后端 + 前端。
+> 💡 Windows 用户一键可跑：
+> - 双击 **`setup.bat`** — 环境一键初始化（检查/安装 uv → `uv sync` 自动装 Python 3.12 + 全部依赖 → 前端构建 → adb/tesseract 检查），幂等可重复运行；
+> - 双击 **`start.bat`** — 启动服务（uvicorn 127.0.0.1:8000，托管 frontend-dist 页面）并自动打开浏览器；
+> - 双击 **`dev.bat`** — 开发模式（后端 reload + 前端 vite dev 6173 并行）。
+>
+> Python 钉在 3.12（任务脚本依赖的 torch/easyocr 等二进制 wheel 不支持 3.13+，这是"新电脑跑不起来"的头号原因）；
+> 常规依赖走清华镜像，torch/torchvision 走 PyTorch 官方 CPU 源（+cpu 构建，避免数 GB 的 CUDA 轮子）。
 
 ---
 
@@ -287,8 +292,8 @@ docker build --build-arg WITH_SCRIPT_DEPS=0 -t coin11-control:slim .
 
 **增强：**
 - 🐳 Docker 多阶段构建，支持 GitHub Actions 自动推送
-- 🏃 一键启动脚本（`start-coin11.bat` / `start-coin11.ps1`）
-- 📝 前端子模块化，`git clone --recursive` 一次拉取全部代码
+- 🏃 一键启动脚本（`start-coin11.bat` / `start-coin11.ps1`，v0.3.2 起改为 `setup.bat` / `start.bat` / `dev.bat`）
+- 📝 前端子模块化，`git clone --recursive` 一次拉取全部代码（v0.3.2 起前端并入 monorepo `frontend/`）
 
 ### v0.1.0 (2026-07-21)
 
@@ -330,7 +335,8 @@ coin11-control-backend/
 │   │   └── version_manager.py
 │   └── schemas/device.py       # Pydantic 模型
 ├── coin11_tb/                  # coin11-tb 脚本仓库（运行时自动 clone）
-├── frontend/                   # 前端子模块
+├── frontend/                   # 前端源码（monorepo，本仓库内）
+├── frontend-dist/              # 前端构建产物（setup.bat 生成，已 gitignore）
 ├── tests/
 │   ├── unit/                   # 单元测试（7 个文件）
 │   └── integration/
@@ -338,11 +344,14 @@ coin11-control-backend/
 │   ├── ci.yml                  # 测试 + lint
 │   └── docker-build.yml        # 镜像构建与推送
 ├── .env.example
-├── requirements.txt            # 运行时依赖
-├── requirements-dev.txt        # 测试/lint 依赖
+├── requirements.txt            # 运行时依赖（uv export 生成：仅后端依赖）
+├── requirements-dev.txt        # 测试/lint 依赖（uv export 生成）
+├── requirements-coin11tb-docker.txt  # 任务脚本依赖（uv export 生成：coin11tb 组，torch 除外）
 ├── Dockerfile
 ├── docker-compose.yml
-└── start-coin11.bat
+├── setup.bat / setup.ps1       # 环境一键初始化（幂等）
+├── start.bat / start.ps1       # 一键启动（uvicorn 8000 + 自动打开浏览器）
+└── dev.bat / dev.ps1           # 开发模式（后端 reload + 前端 vite dev）
 ```
 
 ---
