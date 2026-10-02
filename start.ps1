@@ -34,7 +34,11 @@ if (-not (Test-Path (Join-Path $Root "frontend-dist\index.html"))) {
         }
         if ($LASTEXITCODE -ne 0) {
             Write-Host "[start] 前端构建失败 —— 将以纯 API 模式启动" -ForegroundColor Red
-        } elseif (Test-Path (Join-Path $Root "frontend\dist")) {
+        }
+        # 主路径：vite build.outDir = ../frontend-dist，产物直接落在仓库根；
+        # 容错：旧 outDir（frontend/dist）时退回复制
+        if (-not (Test-Path (Join-Path $Root "frontend-dist\index.html")) -and
+            (Test-Path (Join-Path $Root "frontend\dist\index.html"))) {
             $t = Join-Path $Root "frontend-dist"
             if (Test-Path $t) { Remove-Item -Recurse -Force $t }
             Copy-Item -Recurse (Join-Path $Root "frontend\dist") $t

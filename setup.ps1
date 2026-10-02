@@ -72,12 +72,16 @@ if (Test-Path (Join-Path $frontendDir "package.json")) {
             Pop-Location
         }
         $distDir = Join-Path $frontendDir "dist"
-        if (Test-Path $distDir) {
+        if (Test-Path (Join-Path $distTarget "index.html")) {
+            # 主路径：vite build.outDir = ../frontend-dist，产物直接落在仓库根
+            Write-Ok "frontend-dist/ 已生成"
+        } elseif (Test-Path (Join-Path $distDir "index.html")) {
+            # 容错：若前端 outDir 未指向 frontend-dist，退回从 frontend/dist 复制
             if (Test-Path $distTarget) { Remove-Item -Recurse -Force $distTarget }
             Copy-Item -Recurse $distDir $distTarget
-            Write-Ok "frontend-dist/ 已生成"
+            Write-Ok "frontend-dist/ 已生成（自 frontend/dist 复制）"
         } else {
-            Write-Skip "未找到 frontend/dist —— 前端若自定义了构建产物目录，请自行同步到 frontend-dist/"
+            Write-Skip "构建后未找到产物（frontend-dist/ 与 frontend/dist 均无 index.html）—— 请检查 vite outDir 配置"
         }
     }
 } else {

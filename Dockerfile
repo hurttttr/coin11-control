@@ -70,8 +70,10 @@ RUN useradd --create-home --uid 10001 app
 COPY . ./
 RUN rm -rf frontend
 
-# 复制前端构建产物到 frontend-dist/
-COPY --from=frontend-builder /app/frontend/dist /app/frontend-dist
+# 复制前端构建产物到 /app/frontend-dist。
+# 注意：vite outDir = ../frontend-dist（相对 WORKDIR /app/frontend），
+# 所以产物在 builder 阶段的 /app/frontend-dist，不是 /app/frontend/dist。
+COPY --from=frontend-builder /app/frontend-dist /app/frontend-dist
 
 # 运行期数据目录：coin11_tb 克隆、auto_task_settings.json 放在这里，
 # 由 docker-compose 用命名卷持久化（重建容器不丢失）。
