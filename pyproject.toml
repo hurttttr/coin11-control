@@ -3,20 +3,16 @@ name = "coin11-control-backend"
 version = "0.3.1"
 description = "Coin11-TB 网页控制平台后端 API"
 readme = "README.md"
-requires-python = ">=3.11"
-# 单一真相来源：仅保留 app/ 代码真实 import 的依赖。
-# 已核实（grep 全仓库，排除 .venv 与 coin11_tb 克隆）：
-#   gitpython / aiofiles / retry / construct / adbutils 均无任何 import，已从依赖中移除；
-#   测试依赖 pytest / pytest-asyncio / httpx 移至 dev 组，不进生产镜像。
+# 钉 3.12：coin11-tb 任务脚本的二进制 wheel（torch/easyocr/opencv 系）在 Python 3.13+
+# 上不可用（这是"新电脑跑不起来"的头号原因）；上游实测可用环境为 uv 管理的 3.12.12。
+requires-python = ">=3.12,<3.13"
 dependencies = [
+    # ---- 后端自有依赖（版本策略不变；已核实 app/ 无其他直接 import）----
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.34.0",
     "pydantic-settings>=2.7.0",
     "websockets>=14.0",
     "python-dotenv>=1.0.0",
-    "opencv-python>=5.0.0.93",
-    "ddddocr>=1.6.1",
-    "torch>=2.14.1",
 ]
 
 [dependency-groups]
@@ -27,6 +23,24 @@ dev = [
     "ruff>=0.9.0",
     "mypy>=1.14.0",
 ]
+# coin11-tb 任务脚本依赖组：task_engine 用本 venv 的 python（sys.executable）在
+# coin11_tb/ 目录里直接执行上游脚本，脚本的全部依赖必须装进同一个 venv。
+# 版本钉版对齐上游 coin11-tb/requirements.txt（实测可用），uv sync 默认安装本组
+# （见 [tool.uv].default-groups），保证新电脑一键可跑。
+# app/ 业务代码不直接 import 这些包 —— 它们是给被代执行的上游脚本用的。
+coin11tb = [
+    "uiautomator2==3.5.2",
+    "uiautodev==0.14.0",
+    "pytesseract==0.3.13",
+    "opencv-python==4.13.0.92",
+    "ddddocr==1.5.6",
+    "easyocr==1.7.2",
+    # utils.py 顶层 import torch（easyocr 也会传递带入）；显式声明以钉 CPU 构建。
+    # PyPI 默认 torch 是 CUDA 构建（数 GB），实测可用环境为 +cpu 构建（数百 MB）。
+    "torch>=2.14.1",
+    # chromedriver.py import selenium，上游 requirements.txt 遗漏，按实际 import 补全。
+    "selenium>=4.20.0",
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -35,7 +49,7 @@ testpaths = ["tests"]
 # ruff: 渐进式规则集（不追求 strict），行宽 100
 [tool.ruff]
 line-length = 100
-target-version = "py311"
+target-version = "py312"
 [tool.ruff.lint]
 select = [
     "E",   # pycodestyle 错误
@@ -51,13 +65,33 @@ ignore = [
 
 # mypy: 渐进式 —— 先增量 + 宽松入口，避免全红；后续再逐步收紧到 strict
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 check_untyped_defs = false
 no_implicit_optional = true
 
+[tool.uv]
+# uv sync 默认安装 dev + coin11tb 两组：一条命令装出"后端 + 任务脚本"完整可跑环境。
+# 只想要后端最小依赖时：uv sync --no-default-groups（或 --no-group coin11tb）。
+default-groups = ["dev", "coin11tb"]
+
+# 项目级国内主镜像：常规依赖全部走清华源（torch/easyocr 数百 MB，新电脑无镜像必超时）。
 [[tool.uv.index]]
-name = "pypi"
-url = "https://pypi.org/simple"
+name = "tuna"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 default = true
+
+# torch 系专用 CPU 源（explicit：仅 [tool.uv.sources] 指向它的包使用）。
+# 原因：PyPI 的 torch 默认是 CUDA 构建（Linux 还会连带 nvidia-* 数 GB 依赖），
+# 实测可用的上游环境是 +cpu 构建；且 CPU 轮子只发布在 download.pytorch.org
+#（阿里云 pytorch-wheels 镜像尚未同步 2.14.x，暂不可作替代源）。
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+# torchvision 由 easyocr 传递带入，同钉 CPU 源以与 torch 配对
+torchvision = { index = "pytorch-cpu" }
