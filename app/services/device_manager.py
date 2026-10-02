@@ -11,7 +11,7 @@ import re
 import subprocess
 import time
 
-from app.core.config import get_settings
+from app.core.config import Settings, get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ class DeviceManager:
         self._devices_cache: tuple[float, list[dict]] | None = None
 
     @property
-    def settings(self):
+    def settings(self) -> Settings:
         """每次访问都取当前配置单例。
 
         不在 __init__ 里捕获 —— 本类是模块级单例，导入时机早于

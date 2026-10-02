@@ -56,8 +56,8 @@ class ScreenCapture:
 
         try:
             return await asyncio.to_thread(_run)
-        except subprocess.TimeoutExpired:
-            raise RuntimeError(f"ADB screencap 超时: {serial}")
+        except subprocess.TimeoutExpired as e:
+            raise RuntimeError(f"ADB screencap 超时: {serial}") from e
 
     async def start_stream(
         self,

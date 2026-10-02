@@ -22,7 +22,7 @@ async def enqueue_task(device_id: str, req: TaskCreateRequest):
     try:
         task = await task_engine.enqueue(device_id, req.script)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     return task.to_dict()
 
 
@@ -32,7 +32,7 @@ async def dequeue_task(device_id: str, task_id: str):
     try:
         success = await task_engine.dequeue(device_id, task_id)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     if not success:
         raise HTTPException(status_code=404, detail=f"任务 {task_id} 未找到")
     return {"success": True}

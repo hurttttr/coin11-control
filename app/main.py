@@ -5,11 +5,11 @@ import asyncio
 import logging
 import os
 import secrets
+from collections.abc import MutableMapping
 from contextlib import asynccontextmanager
 from functools import partial
 from importlib import metadata
-
-logger = logging.getLogger(__name__)
+from typing import Any
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,6 +26,7 @@ from app.services.screen_capture import screen_capture
 from app.services.task_engine import task_engine
 from app.services.websocket_manager import ws_manager
 
+logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
@@ -149,7 +150,7 @@ class SPAStaticFiles(StaticFiles):
     # 转而对 HTML 执行 JSON.parse，把"端点不存在"伪装成解析错误，极难排查。
     _BACKEND_PREFIXES = ("api/", "ws/")
 
-    async def get_response(self, path: str, scope: dict):
+    async def get_response(self, path: str, scope: MutableMapping[str, Any]):
         # 注意：StaticFiles 抛出的是 starlette.exceptions.HTTPException（与 fastapi 的
         # HTTPException 是不同类，后者继承前者但反之不成立），必须用 Starlette 版本捕获。
         try:
@@ -163,7 +164,9 @@ class SPAStaticFiles(StaticFiles):
                 raise  # 静态资源目录下未命中 → 保持 404
             if normalized.startswith(self._BACKEND_PREFIXES):
                 raise  # 未知 API/WS 路径 → 保持 404，不伪装成 SPA 页面
-            index_path = os.path.normpath(os.path.join(self.directory, "index.html"))
+            # self.directory 按 StaticFiles 签名可为 PathLike/None，实际由
+            # safemount_frontend_dist 传入 str；str() 同时收窄类型并保持原值不变
+            index_path = os.path.normpath(os.path.join(str(self.directory), "index.html"))
             if os.path.isfile(index_path):
                 from starlette.responses import FileResponse
 

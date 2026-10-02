@@ -54,7 +54,7 @@ class RepoManager:
         self._status = "cloning"
         logger.info("[RepoManager] 正在克隆 coin11-tb 仓库 (%s) ...", self.repo_url)
 
-        def _clone():
+        def _clone() -> tuple[bool, str]:
             result = subprocess.run(
                 ["git", "clone", self.repo_url, self.repo_path],
                 capture_output=True,

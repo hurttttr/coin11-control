@@ -77,7 +77,9 @@ jobs:
         working-directory: frontend
         run: npm test
 
-  # ---------- 静态检查（后端，基线） ----------
+  # ---------- 静态检查（后端，硬闸门） ----------
+  # ruff/mypy 存量问题已于 2026-10 清零，本 job 为阻塞闸门：
+  # 任何新增违规都会直接置红 CI，禁止再以 continue-on-error 放行。
   lint:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -91,15 +93,13 @@ jobs:
           python-version: "3.12"
           cache: pip
 
-      - name: Install dev dependencies (ruff/mypy)
-        run: pip install ruff mypy
+      # mypy 需要解析 fastapi/pydantic 等第三方类型，必须安装运行时依赖，
+      # 否则全部报 import-not-found（仅装 ruff/mypy 的旧写法只靠基线模式掩盖）。
+      - name: Install dependencies (runtime + ruff/mypy pinned in requirements-dev)
+        run: pip install -r requirements.txt -r requirements-dev.txt
 
-      # 当前为基线阶段：lint 存在存量问题（并行子代理仍在改动 app/），
-      # 因此 continue-on-error 只记录基线，不阻塞合并。
-      - name: ruff check (baseline)
-        continue-on-error: true
+      - name: ruff check
         run: ruff check . --output-format=github
 
-      - name: mypy check (baseline)
-        continue-on-error: true
+      - name: mypy check
         run: mypy app

@@ -28,10 +28,14 @@ os.environ["AUTO_TASK_SETTINGS_FILE"] = _EMPTY_TASKS
 with open(_EMPTY_TASKS, "w", encoding="utf-8") as _f:
     _f.write('{"auto_tasks": []}')
 
-import logging
+# E402 有意为之：隔离环境变量（COIN11_TB_PATH / AUTO_TASK_SETTINGS_FILE / TMP 等）
+# 必须先于任何 app.* 导入设置（见模块 docstring），否则 import 时会触发真实的
+# git clone / ADB 调用。下面三个导入本身虽不加载 app，但刻意保持在环境隔离块
+# 之后，防止未来有人把 app 导入插入此处或被工具自动上移到环境设置之前。
+import logging  # noqa: E402
 
-from fastapi import APIRouter, FastAPI
-from fastapi.testclient import TestClient
+from fastapi import APIRouter, FastAPI  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
 
 # ---------- CORS 一致性 ----------
 

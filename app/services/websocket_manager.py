@@ -56,7 +56,8 @@ class ConnectionManager:
             return_exceptions=True,
         )
         dead: set[WebSocket] = set()
-        for ws, res in zip(conns, results):
+        # strict=True: gather 对每个连接恰好返回一个结果，长度恒相等，违例即 bug
+        for ws, res in zip(conns, results, strict=True):
             if isinstance(res, Exception):
                 dead.add(ws)
         for ws in dead:

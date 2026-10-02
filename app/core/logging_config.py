@@ -30,7 +30,9 @@ def setup_logging(level: str | None = None) -> None:
     if sys.platform == "win32":
         for stream in (sys.stdout, sys.stderr):
             try:
-                stream.reconfigure(encoding="utf-8")
+                # TextIO 协议未声明 reconfigure（实际是 TextIOWrapper 的方法），
+                # 替换型 stdout 会抛 AttributeError —— 正是 except 分支存在的意义
+                stream.reconfigure(encoding="utf-8")  # type: ignore[union-attr]
             except (AttributeError, OSError):
                 # 某些环境（如重定向管道）可能不支持 reconfigure，忽略即可
                 pass

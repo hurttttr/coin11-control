@@ -8,7 +8,7 @@ git 子进程逻辑统一走 app.services.git_ops（与 repo_manager 共享）�
 import logging
 from datetime import datetime
 
-from app.core.config import get_settings
+from app.core.config import Settings, get_settings
 from app.services import git_ops
 
 logger = logging.getLogger(__name__)
@@ -41,7 +41,7 @@ class VersionManager:
         self._last_check: UpdateCheckResult | None = None
 
     @property
-    def settings(self):
+    def settings(self) -> Settings:
         """每次访问都取当前配置单例（理由同 DeviceManager.settings）"""
         return get_settings()
 

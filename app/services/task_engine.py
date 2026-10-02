@@ -413,7 +413,9 @@ class TaskEngine:
                         daemon.cancel()
                         await asyncio.shield(daemon)
                 except asyncio.CancelledError:
-                    asyncio.current_task().uncancel()
+                    current = asyncio.current_task()
+                    if current is not None:
+                        current.uncancel()
                 self._background_terminate(task)
                 return "timeout"
             except asyncio.CancelledError:

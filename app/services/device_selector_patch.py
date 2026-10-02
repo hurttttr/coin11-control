@@ -29,7 +29,7 @@ if device_serial:
         utils.set_terminal_title(device_serial)
         return device_serial
     utils.select_device = _select_device_patched
-    
+
     # Patch 2: 替换 _detect_and_select_user，自动选择第一个用户（机主）
     def _detect_user_patched(d):
         print("[启动器] 后端模式已启用，自动选择用户（机主）")
@@ -44,7 +44,7 @@ if device_serial:
             print(f"[启动器] 检测用户失败: {{e}}")
         return None
     utils._detect_and_select_user = _detect_user_patched
-    
+
     print(f"[启动器] 已注入设备序列号: {{device_serial}}")
 else:
     print("[启动器] 未指定设备 serial，将使用原 select_device 逻辑")
