@@ -1,0 +1,511 @@
+/* ========== CSS Custom Properties (Dark Tech Theme) ========== */
+:root {
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #111827;
+  --bg-card: #1a1f35;
+  --bg-card-hover: #222a45;
+  --bg-glass: rgba(26, 31, 53, 0.6);
+  --accent: #00f0ff;
+  --accent-dim: rgba(0, 240, 255, 0.15);
+  --accent-glow: rgba(0, 240, 255, 0.3);
+  --text-primary: #e2e8f0;
+  --text-secondary: #b0c4d8;
+  --text-muted: #8899b0;
+  --success: #10b981;
+  --success-dim: rgba(16, 185, 129, 0.15);
+  --warning: #f59e0b;
+  --warning-dim: rgba(245, 158, 11, 0.15);
+  --error: #ef4444;
+  --error-dim: rgba(239, 68, 68, 0.15);
+  --info: #3b82f6;
+  --border: rgba(148, 163, 184, 0.1);
+  --border-accent: rgba(0, 240, 255, 0.2);
+  --sidebar-width: 260px;
+  --header-height: 0px;
+
+  /* Font size tokens */
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-base: 15px;
+  --font-size-lg: 18px;
+  --font-size-xl: 22px;
+  --font-size-2xl: 28px;
+}
+
+/* ========== 浏览器默认样式重置 ==========
+   本项目不使用 Tailwind 的任何工具类，因此已移除 tailwindcss 依赖。
+   但原先的 `@import "tailwindcss"` 附带了 preflight 重置，全站样式实际依赖它
+   （例如 <p> 与标题的默认外边距、button 的默认外观、img 的 display: block）。
+   以下是按 tailwindcss/preflight.css 逐条移植的等价重置，只保留本项目用得到的
+   元素，去掉了 Tailwind 的 --theme() 变量插值与 date/time 输入框的 webkit 补丁。
+   改动此处前请先确认没有组件依赖被删掉的规则。 */
+
+/* 1. padding/border 不参与宽度计算  2. 清除默认外边距与内边距
+   3. 边框默认 0 宽度 solid 样式（组件只写 border-width 也能生效） */
+*,
+::before,
+::after,
+::backdrop,
+::file-selector-button {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0 solid;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 标题不继承浏览器的字号与字重，一律由组件显式声明 */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+/* 链接改为按需加样式，而非默认蓝色下划线 */
+a {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+b,
+strong {
+  font-weight: bolder;
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', ui-monospace, monospace;
+  font-size: 1em;
+}
+
+small {
+  font-size: 80%;
+}
+
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+sub { bottom: -0.25em; }
+sup { top: -0.5em; }
+
+hr {
+  height: 0;
+  color: inherit;
+  border-top-width: 1px;
+}
+
+abbr:where([title]) {
+  text-decoration: underline dotted;
+}
+
+table {
+  text-indent: 0;
+  border-color: inherit;
+  border-collapse: collapse;
+}
+
+/* 列表默认无项目符号 */
+ol,
+ul,
+menu {
+  list-style: none;
+}
+
+/* 替换型元素默认块级，避免行内基线留白（ScreenViewer 的截图依赖此项） */
+img,
+svg,
+video,
+canvas,
+audio,
+iframe,
+embed,
+object {
+  display: block;
+  vertical-align: middle;
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 表单控件继承字体与颜色，去掉默认圆角与灰底（全站按钮依赖此项） */
+button,
+input,
+select,
+optgroup,
+textarea,
+::file-selector-button {
+  font: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  border-radius: 0;
+  background-color: transparent;
+  opacity: 1;
+}
+
+button,
+input:where([type='button'], [type='reset'], [type='submit']),
+::file-selector-button {
+  appearance: button;
+}
+
+::placeholder {
+  opacity: 1;
+}
+
+textarea {
+  resize: vertical;
+}
+
+:-moz-focusring {
+  outline: auto;
+}
+
+progress {
+  vertical-align: baseline;
+}
+
+summary {
+  display: list-item;
+}
+
+::-webkit-inner-spin-button,
+::-webkit-outer-spin-button {
+  height: auto;
+}
+
+[hidden]:where(:not([hidden='until-found'])) {
+  display: none !important;
+}
+
+/* ========== Global Styles ========== */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 15px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ── 美化滚动条 ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.35);
+}
+
+::selection {
+  background: rgba(0, 240, 255, 0.25);
+  color: var(--text-primary);
+}
+
+/* ========== Utility Classes ========== */
+.glass-panel {
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+}
+
+.glow-accent {
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--border-accent);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.08);
+}
+
+.terminal-text {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* ========== 页面骨架（各 view 共用的页头） ========== */
+/* 原先在 DashboardView / TaskListView / DeviceDetailView / SettingsView 中逐字重复。
+   各 view 的 scoped 样式（带 [data-v-*]）特异性更高，如需差异化可在组件内覆盖。 */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 4px 0 0;
+}
+
+/* ========== 通用按钮 ========== */
+/* ── 刷新按钮（DashboardView / TaskListView 共用） ── */
+.btn-refresh {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-refresh:hover:not(:disabled) {
+  border-color: var(--border-accent);
+  color: var(--accent);
+}
+
+.btn-refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── 移除按钮（任务行共用） ── */
+.btn-remove {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+
+.btn-remove:hover {
+  color: var(--error);
+  background: var(--error-dim);
+}
+
+/* ── 加载态转圈（TaskListView / DeviceGrid 共用同一份定义） ── */
+/* 仅提取 .placeholder-spinner：同组的 .placeholder-icon / -text / -hint 在
+   ScreenViewer 中只覆盖了部分属性，上提会让未覆盖的属性泄漏进去改变视觉，
+   因此那三个类刻意保留在各自的 scoped style 中。 */
+.placeholder-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 12px;
+}
+
+/* ========== 任务行与任务状态 Badge ========== */
+/* badge-* 的类名由 src/utils/taskStatus.ts 的 TASK_STATUS_META 产出，
+   本质上是全局契约，因此样式定义放在全局而非某个组件内。
+   TaskListView 与 TaskQueue 共用这一整套；两者仅字号/内边距不同，
+   差异部分保留在各自的 scoped style 中覆盖。 */
+.task-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.05);
+  transition: background 0.15s;
+}
+
+.task-item:last-child {
+  border-bottom: none;
+}
+
+.task-item:hover {
+  background: rgba(0, 240, 255, 0.03);
+}
+
+.task-badge-wrap {
+  flex-shrink: 0;
+}
+
+.task-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.badge-icon {
+  font-size: 11px;
+}
+
+.badge-pending {
+  background: var(--warning-dim);
+  color: var(--warning);
+}
+
+.badge-running {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--info);
+}
+
+.badge-running .badge-icon {
+  animation: spin 1s linear infinite;
+}
+
+.badge-completed {
+  background: var(--success-dim);
+  color: var(--success);
+}
+
+.badge-failed {
+  background: var(--error-dim);
+  color: var(--error);
+}
+
+.task-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-script {
+  font-size: 13px;
+  color: var(--text-primary);
+  font-family: inherit;
+}
+
+.task-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.task-time {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ── 状态圆点 (旧版兼容) ── */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  position: relative;
+}
+
+.status-dot.online {
+  background: var(--success);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+  animation: pulse-green 2s ease-in-out infinite;
+}
+
+.status-dot.busy {
+  background: var(--info);
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+  animation: pulse-blue 2s ease-in-out infinite;
+}
+
+.status-dot.offline {
+  background: var(--error);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+}
+
+/* ── 脉冲动画 ── */
+@keyframes pulse-green {
+  0%, 100% {
+    box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 14px rgba(16, 185, 129, 0.9), 0 0 24px rgba(16, 185, 129, 0.3);
+  }
+}
+
+@keyframes pulse-blue {
+  0%, 100% {
+    box-shadow: 0 0 6px rgba(59, 130, 246, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 14px rgba(59, 130, 246, 0.9), 0 0 24px rgba(59, 130, 246, 0.3);
+  }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.3; }
+}
+
+/* ── 旋转（加载态 / 运行中 badge 共用） ── */
+/* 注意：组件 scoped style 内若自带 @keyframes spin，Vue 会把名称 hash 成
+   spin-xxxx 并只在该组件内生效；此处的全局 spin 供未自带定义的组件使用。 */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── 淡入淡出过渡 ── */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
