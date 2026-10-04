@@ -181,7 +181,8 @@ docker build --build-arg WITH_SCRIPT_DEPS=0 -t coin11-control:slim .
 
 > **🔌 远程连接 / ADB 配对（Android 11+ 无线调试）**
 > 1. 前端通过 `GET /api/devices/network-info` 自动探测本机局域网网段（`{"subnet":"192.168.1","host_ip":"192.168.1.10"}`），
->    探测不到局域网时可用 `LAN_SUBNET_OVERRIDE` 兜底，并在输入框中自动预填网段前缀。
+>    并在输入框中自动预填网段前缀。`LAN_SUBNET_OVERRIDE` 设置后优先于自动探测——
+>    Docker 部署必配：容器内只能探测到虚拟网桥网段，无法得知宿主机真实局域网。
 > 2. 远程连接：只需输入 IP 最后一段（如 `100`）与端口（默认 `5555`），前端拼成完整地址
 >    `IP:Port` 后调用 `POST /api/devices/connect`；直接粘贴完整地址同样兼容。
 > 3. ADB 配对：在配对弹窗输入 IP 最后一段（网段已预填）、配对端口与 6 位配对码，调用

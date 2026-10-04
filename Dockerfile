@@ -7,6 +7,11 @@ WORKDIR /app/frontend
 COPY frontend/package*.json ./
 RUN npm ci
 COPY frontend/ ./
+# WS token 构建期注入前端 bundle。frontend/.env.local 被 .gitignore/.dockerignore 排除，
+# CI 构建时不存在；缺了它前端会以空 token 连 WS → 后端 403（实时画面/日志终端全挂）。
+# 必须与 Stage 2 的 WS_AUTH_TOKEN 保持一致。
+ARG WS_AUTH_TOKEN=coin11-control-token
+ENV VITE_WS_TOKEN=$WS_AUTH_TOKEN
 # 完整构建 = vue-tsc 类型检查 + vite build。frontend 已并入 monorepo（frontend/），
 # 类型错误由前端侧修复，这里不再用 npx vite build 绕过检查。
 RUN npm run build
@@ -17,6 +22,10 @@ RUN npm run build
 FROM python:3.12-slim
 
 WORKDIR /app
+
+# 与 Stage 1 注入前端 bundle 的 token 同源，镜像内前后端默认配对（WS 鉴权通过）
+ARG WS_AUTH_TOKEN=coin11-control-token
+ENV WS_AUTH_TOKEN=${WS_AUTH_TOKEN}
 
 # 系统依赖:
 #   git                          -> repo_manager 运行时 clone/更新 coin11-tb 上游仓库

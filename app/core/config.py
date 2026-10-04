@@ -21,8 +21,9 @@ class Settings(BaseSettings):
     # 服务监听端口
     PORT: int = 8000
 
-    # 局域网网段覆盖值（可选）。手机扫码配对需后端 0.0.0.0 监听且手机与电脑同网；
-    # GET /api/devices/network-info 自动探测失败或探测到非局域网网段时回退到此值。
+    # 局域网网段覆盖值（可选，前三段，如 "192.168.31"）。设置后优先于自动探测。
+    # Docker 部署必配：容器内只能探测到虚拟网桥网段，无法得知宿主机真实局域网。
+    # 手机扫码配对需后端 0.0.0.0 监听且手机与宿主机同网。
     LAN_SUBNET_OVERRIDE: str = ""
 
     # CORS 允许的来源（JSON 数组字符串；pydantic-settings 对 list[str] 自动做 JSON 解析）
@@ -32,8 +33,9 @@ class Settings(BaseSettings):
     ]
 
     # WebSocket 鉴权 Token（本地单用户场景用简单 token）
-    # 注意：前端 submodule（frontend/src/stores/websocket.ts）当前硬编码了默认值，
-    # 修改此默认值会导致前端无法连接；生产环境应通过 .env 覆盖为强随机值。
+    # 前端在构建期经 VITE_WS_TOKEN 注入（Dockerfile 用同名 ARG 同时注入两侧保证配对）；
+    # 修改此值必须同步重建前端（Docker：--build-arg WS_AUTH_TOKEN=<新值> 重建镜像），
+    # 否则 WS 因 token 失配全部 403。
     WS_AUTH_TOKEN: str = "coin11-control-token"
 
     # API 鉴权 Token（可选，默认关闭以保持向后兼容）

@@ -53,7 +53,7 @@ async def pair_device(req: DevicePairRequest):
 async def network_info():
     """获取局域网网段与本机 IP，供前端自动预填配对/连接地址
 
-    自动探测失败或探测到非局域网网段时回退 LAN_SUBNET_OVERRIDE。
+    LAN_SUBNET_OVERRIDE 显式配置时优先返回；否则自动探测本机网段。
     返回 {"subnet": "192.168.1", "host_ip": "192.168.1.10"}
     """
     return get_network_info()

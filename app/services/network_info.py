@@ -17,8 +17,9 @@
    家庭/手机所在 WiFi 局域网几乎总在 192.168/16；10/8 次之（企业网）；
    172.16/12 最后 —— Docker/WSL/Hyper-V 虚拟交换机惯用该段，常为"假局域网"。
    同级内 UDP 路由探测结果优先（排序稳定，候选收集时它排在最前）。
-4. 无任何候选 → 返回 None，由 get_network_info 回退 settings.LAN_SUBNET_OVERRIDE
-   （host_ip 置空，交由前端拼 IP 建议）。
+4. LAN_SUBNET_OVERRIDE 配置了值 → 跳过探测直接采用（Docker 容器内只能看到
+   虚拟网桥段，探测必然"成功"，覆盖值必须最优先）。
+5. 无任何候选 → get_network_info 返回空（host_ip 置空，交由前端拼 IP 建议）。
 
 subnet 取 IP 前三段（如 192.168.1.10 → "192.168.1"）。
 """
@@ -171,18 +172,19 @@ def _subnet_of(ip: str) -> str:
 def get_network_info() -> dict:
     """返回 {"subnet": str, "host_ip": str}。
 
-    自动探测成功且命中局域网 → 返回 {subnet, host_ip}；
-    否则回退 settings.LAN_SUBNET_OVERRIDE（host_ip 置空，由前端自行建议）。
+    LAN_SUBNET_OVERRIDE 显式配置时直接采用（host_ip 置空，由前端自行建议）——
+    Docker 部署下容器只能探测到虚拟网桥网段（RFC1918 合法），探测必然"成功"，
+    无法得知宿主机真实局域网，因此显式配置必须优先于自动探测；
+    未配置时走自动探测，探测失败返回空。
     """
-    settings = get_settings()
+    override = (get_settings().LAN_SUBNET_OVERRIDE or "").strip()
+    if override:
+        return {"subnet": override, "host_ip": ""}
+
     ip = detect_local_ip()
     if ip:
         subnet = _subnet_of(ip)
         if subnet:
             return {"subnet": subnet, "host_ip": ip}
-
-    override = (settings.LAN_SUBNET_OVERRIDE or "").strip()
-    if override:
-        return {"subnet": override, "host_ip": ""}
 
     return {"subnet": "", "host_ip": ""}

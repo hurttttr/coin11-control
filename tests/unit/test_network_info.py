@@ -166,6 +166,19 @@ def test_get_network_info_success(monkeypatch):
     assert info == {"subnet": "192.168.1", "host_ip": "192.168.1.10"}
 
 
+def test_get_network_info_override_wins_over_detection(monkeypatch):
+    """回归：Docker 容器内探测"成功"（拿到网桥私网 IP）也必须让位给显式 override。
+
+    容器内唯一网卡是 Docker 网桥（172.16/12，RFC1918 合法），探测必然"成功"，
+    但它不是宿主机真实局域网 —— 显式配置必须优先于自动探测。
+    """
+    fake = _FakeSocket(("172.19.0.2", 0))  # Docker 网桥段
+    _stub_enumeration(monkeypatch, ["172.19.0.2"])
+    monkeypatch.setattr(ni, "_new_udp_socket", lambda *a, **k: fake)
+    monkeypatch.setattr(get_settings(), "LAN_SUBNET_OVERRIDE", "192.168.31")
+    assert ni.get_network_info() == {"subnet": "192.168.31", "host_ip": ""}
+
+
 def test_get_network_info_fallback_to_override(monkeypatch):
     """探测失败 → 回退 LAN_SUBNET_OVERRIDE。"""
     _stub_enumeration(monkeypatch, [])
