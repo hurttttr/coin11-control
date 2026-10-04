@@ -134,12 +134,15 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 项目使用**多阶段构建**，前端编译后与后端打包成单一镜像。
 
 ```bash
-# 本地构建
-docker compose build
+# 拉取镜像并启动（GHCR 公开镜像，无需登录）
+docker compose up -d
 
-# 或从 GitHub Container Registry 拉取
-docker pull ghcr.io/hurttttr/coin11-control:master
-docker run -d --name coin11-control -p 8000:8000 ghcr.io/hurttttr/coin11-control:master
+# 升级到新版本
+docker compose pull && docker compose up -d
+
+# 不用 compose 时直接 docker run
+docker run -d --name coin11-control -p 8000:8000 -v coin11-data:/app/data \
+  ghcr.io/hurttttr/coin11-control:latest
 ```
 
 访问 **http://localhost:8000**（远程服务器替换为对应 IP）。

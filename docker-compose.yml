@@ -1,8 +1,8 @@
 services:
   server:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # 直接拉取 GHCR 公开镜像；升级：docker compose pull && docker compose up -d
+    # 固定版本可把 latest 换成具体 tag（如 0.4.0）；本地构建改回 build: { context: ., dockerfile: Dockerfile }
+    image: ghcr.io/hurttttr/coin11-control:latest
     container_name: coin11-control
     ports:
       - "8000:8000"
