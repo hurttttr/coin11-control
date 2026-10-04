@@ -22,6 +22,10 @@ services:
     volumes:
       # 持久化：coin11_tb 克隆 + 自动任务配置等运行时数据，重建容器不丢失
       - coin11-data:/app/data
+      # 持久化 ADB 身份（adbkey）—— 重建容器不丢；如需与宿主机同身份（手机已授权过
+      # 宿主机 adb 的设备免重新授权），把宿主机 ~/.android/adbkey(.pub) 拷入该卷并
+      # chown app:app、chmod 600 adbkey
+      - adb-identity:/home/app/.android
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=4).status==200 else 1)"]
@@ -32,3 +36,4 @@ services:
 
 volumes:
   coin11-data:
+  adb-identity:
