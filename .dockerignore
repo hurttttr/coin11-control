@@ -40,6 +40,9 @@ task_state.json
 auto_task_settings.json
 update_settings.json
 update_settings.json.tmp
+
+# 本地工作区数据（记忆、截图等，不入镜像）
+.workbuddy/
 .test-tmp/
 .pytest_cache/
 .mypy_cache/
