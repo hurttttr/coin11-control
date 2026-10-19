@@ -1,7 +1,7 @@
 {
   "name": "coin11-control-frontend",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.4.2",
   "type": "module",
   "engines": {
     "node": "^20.19.0 || ^22.13.0 || >=24"

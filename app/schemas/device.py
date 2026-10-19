@@ -108,10 +108,16 @@ class UpdateCheckResult(BaseModel):
     commits_behind: int = 0
     commit_messages: list[str] = Field(default_factory=list)
     checked_at: datetime = Field(default_factory=datetime.now)
+    # 版本页需要知道"检查的是哪个仓库/分支"，以及 fetch 是否真的成功
+    #（无网络时不能把本地缓存当成"无更新"）
+    branch: str = ""
+    repo_url: str = ""
+    fetch_ok: bool = True
+    warning: str = ""
 
 
 class UpdatePullResult(BaseModel):
-    """拉取更新结果 (响应 schema)"""
+    """拉取更新结果 (响应 schema，同步拉取/兼容调用)"""
     success: bool
     message: str = ""
     pulled_commits: list[str] = Field(default_factory=list)

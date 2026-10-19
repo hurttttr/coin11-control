@@ -16,6 +16,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { name: '仪表盘', path: '/', icon: '◈' },
   { name: '任务列表', path: '/tasks', icon: '☰' },
+  { name: '版本管理', path: '/updates', icon: '⟳' },
   { name: '设置', path: '/settings', icon: '⚙' },
 ]
 

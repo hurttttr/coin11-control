@@ -26,8 +26,25 @@ async def run_git(
     - 超时返回 ("", "timeout", -1)
     - git 不在 PATH 返回 ("", "git 不可用", -1)
     - 其余 OSError 返回 ("", str(e), -1) 并记录 warning
+
+    统一附加两个配置：
+
+    - `core.fileMode=false`：Docker Desktop 的 Windows bind mount 会把所有文件
+      暴露为 0777，仓库里记录的是 100644 —— 开启 fileMode 时每个被跟踪文件都会
+      显示为 "mode change 100644 => 100755"，`git pull` 因此拒绝执行
+      （"local changes would be overwritten"）。coin11-tb 的脚本都通过解释器
+      执行，不依赖可执行位，忽略文件模式是安全的。
+    - `core.quotepath=false`：更新日志里直接显示中文文件名，而不是
+      "2026\\346\\267..." 这样的八进制转义。
     """
-    cmd = ["git", *args]
+    cmd = [
+        "git",
+        "-c",
+        "core.fileMode=false",
+        "-c",
+        "core.quotepath=false",
+        *args,
+    ]
 
     def _run():
         try:
@@ -56,6 +73,14 @@ async def run_git(
 def is_git_repo(repo_path: str) -> bool:
     """目录是否为 git 仓库（存在 .git 目录即可，语义与原实现保持一致）"""
     return os.path.isdir(os.path.join(repo_path, ".git"))
+
+
+async def resolve_branch(repo_path: str, override: str = "") -> str:
+    """解析要跟踪的分支：用户显式指定优先，否则自动探测远端默认分支。"""
+    specified = (override or "").strip()
+    if specified:
+        return specified
+    return await detect_default_branch(repo_path)
 
 
 async def detect_default_branch(repo_path: str) -> str:
@@ -130,9 +155,45 @@ async def list_commit_messages(repo_path: str, current: str, branch: str) -> lis
     return []
 
 
-async def pull(repo_path: str, branch: str, timeout: int = 60) -> tuple[str, str, int]:
-    """git pull origin <branch>"""
-    return await run_git(repo_path, "pull", "origin", branch, timeout=timeout)
+async def pull(
+    repo_path: str, branch: str, timeout: int = 60, ff_only: bool = False
+) -> tuple[str, str, int]:
+    """git pull origin <branch>；ff_only=True 时只允许快进合并。"""
+    args = ["pull"]
+    if ff_only:
+        args.append("--ff-only")
+    args.extend(["origin", branch])
+    return await run_git(repo_path, *args, timeout=timeout)
+
+
+async def clone(repo_url: str, repo_path: str, timeout: int = 300) -> tuple[str, str, int]:
+    """git clone <url> <path>（在父目录执行，目标目录可以尚不存在）"""
+    parent = os.path.dirname(os.path.abspath(repo_path)) or "."
+    return await run_git(parent, "clone", "--progress", repo_url, repo_path, timeout=timeout)
+
+
+async def get_remote_url(repo_path: str, remote: str = "origin") -> str:
+    """读取远端地址；失败返回空串"""
+    stdout, _, rc = await run_git(repo_path, "remote", "get-url", remote, timeout=10)
+    return stdout if rc == 0 else ""
+
+
+async def set_remote_url(
+    repo_path: str, url: str, remote: str = "origin"
+) -> tuple[str, str, int]:
+    """改写远端地址（只改仓库配置，不触发网络请求）"""
+    return await run_git(repo_path, "remote", "set-url", remote, url, timeout=15)
+
+
+async def status_porcelain(repo_path: str) -> str:
+    """git status --porcelain（空串表示工作区干净）；失败返回空串"""
+    stdout, _, rc = await run_git(repo_path, "status", "--porcelain", timeout=30)
+    return stdout if rc == 0 else ""
+
+
+async def disable_file_mode(repo_path: str) -> None:
+    """把 core.fileMode=false 写入仓库配置（clone 后调用，便于用户在容器内手动 git 操作）"""
+    await run_git(repo_path, "config", "core.fileMode", "false", timeout=10)
 
 
 def parse_pulled_commits(stdout: str) -> list[str]:

@@ -8,7 +8,6 @@ import secrets
 from collections.abc import MutableMapping
 from contextlib import asynccontextmanager
 from functools import partial
-from importlib import metadata
 from typing import Any
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
@@ -19,26 +18,18 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.api.v1.router import router as v1_router
 from app.core.config import Settings, get_settings
 from app.core.logging_config import setup_logging
+from app.core.runtime import app_version
+from app.services import git_ops
 from app.services.auto_task_runner import auto_task_watcher
 from app.services.queue_control import SCREENCAST_FPS
 from app.services.repo_manager import RepoManager
 from app.services.screen_capture import screen_capture
 from app.services.task_engine import task_engine
+from app.services.update_settings import update_settings
 from app.services.websocket_manager import ws_manager
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
-
-
-# 版本号：优先从已安装的包元数据读取（与 pyproject.toml 保持一致），读不到时回退常量
-_VERSION_FALLBACK = "0.4.0"
-
-
-def _resolve_version() -> str:
-    try:
-        return metadata.version("coin11-control")
-    except metadata.PackageNotFoundError:
-        return _VERSION_FALLBACK
 
 
 # ---------- API 鉴权（可选，默认关闭以保持向后兼容） ----------
@@ -249,11 +240,16 @@ async def lifespan(app: FastAPI):
     import app.services.repo_manager as rm
 
     coin11_tb_path = settings.coin11_tb_path_resolved
-    repo_mgr = RepoManager(coin11_tb_path, settings.COIN11_TB_REPO_URL)
+    # 页面配置的仓库地址优先于 .env（配置持久化在 /app/data 卷）
+    repo_url = update_settings.repo_url or settings.COIN11_TB_REPO_URL
+    repo_mgr = RepoManager(coin11_tb_path, repo_url)
     rm.repo_manager = repo_mgr
 
     clone_ok = await repo_mgr.ensure_repo()
     if clone_ok:
+        # 老版本创建的仓库没有 core.fileMode=false；Docker Desktop 的 Windows
+        # bind mount 会把所有文件报成 0777，导致每个文件都显示为已修改、pull 失败。
+        await git_ops.disable_file_mode(coin11_tb_path)
         logger.info("  [OK] coin11-tb 仓库就绪: %s", coin11_tb_path)
     else:
         logger.warning("  [WARN] coin11-tb 仓库初始化失败: %s", repo_mgr.error_msg)
@@ -288,7 +284,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Coin11-TB Control API",
     description="Coin11-TB 网页控制平台后端 API",
-    version=_resolve_version(),
+    version=app_version(),
     lifespan=lifespan,
 )
 

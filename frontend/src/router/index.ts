@@ -20,6 +20,12 @@ const routes: RouteRecordRaw[] = [
     meta: { title: '任务列表', icon: 'tasks' },
   },
   {
+    path: '/updates',
+    name: 'updates',
+    component: () => import('@/views/UpdateView.vue'),
+    meta: { title: '版本管理', icon: 'update' },
+  },
+  {
     path: '/settings',
     name: 'settings',
     component: () => import('@/views/SettingsView.vue'),

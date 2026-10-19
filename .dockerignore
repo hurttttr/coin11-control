@@ -38,6 +38,8 @@ docker-compose.yml
 coin11_tb/
 task_state.json
 auto_task_settings.json
+update_settings.json
+update_settings.json.tmp
 .test-tmp/
 .pytest_cache/
 .mypy_cache/

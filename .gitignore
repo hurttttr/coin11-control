@@ -20,5 +20,10 @@ frontend-dist/
 node_modules/
 # 运行时生成的自动任务配置（本机用户选择，不入库）
 auto_task_settings.json
+# 运行时生成的版本配置（页面指定的仓库地址/分支，不入库）
+update_settings.json
+update_settings.json.tmp
 # 运行时任务队列状态（含本机路径，不入库）
 task_state.json
+# 本地工作区数据（记忆、截图等，不参与发布）
+.workbuddy/

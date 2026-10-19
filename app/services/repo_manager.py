@@ -3,10 +3,8 @@
 git 子进程操作统一走 app.services.git_ops，避免与 version_manager 重复实现。
 """
 
-import asyncio
 import logging
 import os
-import subprocess
 from datetime import datetime
 
 from app.services import git_ops
@@ -54,17 +52,12 @@ class RepoManager:
         self._status = "cloning"
         logger.info("[RepoManager] 正在克隆 coin11-tb 仓库 (%s) ...", self.repo_url)
 
-        def _clone() -> tuple[bool, str]:
-            result = subprocess.run(
-                ["git", "clone", self.repo_url, self.repo_path],
-                capture_output=True,
-                text=True,
-                timeout=120,
-            )
-            return result.returncode == 0, result.stderr
-
-        success, err = await asyncio.to_thread(_clone)
+        _, err, rc = await git_ops.clone(self.repo_url, self.repo_path, timeout=180)
+        success = rc == 0
         if success:
+            # Docker Desktop 的 Windows bind mount 不支持可执行位（全部 0777），
+            # 写入 fileMode=false 后仓库不再被误判为"每个文件都已修改"。
+            await git_ops.disable_file_mode(self.repo_path)
             self._status = "ready"
             logger.info("[RepoManager] coin11-tb 仓库克隆成功: %s", self.repo_path)
         else:

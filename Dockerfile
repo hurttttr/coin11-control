@@ -98,7 +98,9 @@ ENV HOST=0.0.0.0 \
     PORT=8000 \
     ADB_PATH=adb \
     COIN11_TB_PATH=/app/data/coin11_tb \
-    AUTO_TASK_SETTINGS_FILE=/app/data/auto_task_settings.json
+    AUTO_TASK_SETTINGS_FILE=/app/data/auto_task_settings.json \
+    UPDATE_SETTINGS_FILE=/app/data/update_settings.json \
+    COIN11_DEPLOYMENT=docker
 
 # 健康检查：镜像基于 python:3.12-slim 无 curl，用 python 探活（与 docker-compose healthcheck 同款）
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \

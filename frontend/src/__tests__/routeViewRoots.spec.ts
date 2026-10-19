@@ -7,6 +7,7 @@ import routerDefault from '@/router'
 import DashboardView from '@/views/DashboardView.vue'
 import TaskListView from '@/views/TaskListView.vue'
 import SettingsView from '@/views/SettingsView.vue'
+import UpdateView from '@/views/UpdateView.vue'
 import DeviceDetailView from '@/views/DeviceDetailView.vue'
 
 /*
@@ -28,6 +29,7 @@ describe('路由视图必须是单根元素（否则破坏 AppLayout 的 out-in 
   const views: readonly [name: string, component: Component, path: string][] = [
     ['DashboardView', DashboardView, '/'],
     ['TaskListView', TaskListView, '/tasks'],
+    ['UpdateView', UpdateView, '/updates'],
     ['SettingsView', SettingsView, '/settings'],
     ['DeviceDetailView', DeviceDetailView, '/device/TESTSERIAL'],
   ]

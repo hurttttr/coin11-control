@@ -4,7 +4,7 @@
 
 **多设备安卓自动化任务控制平台**
 
-[![Version](https://img.shields.io/badge/版本-v0.4.0-00f0ff?style=flat-square)](https://github.com/hurttttr/coin11-control/releases)
+[![Version](https://img.shields.io/badge/版本-v0.4.2-00f0ff?style=flat-square)](https://github.com/hurttttr/coin11-control/releases)
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=flat-square&logo=python&logoColor=white)]()
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)]()
 [![Vue 3](https://img.shields.io/badge/Frontend-Vue_3-4FC08D?style=flat-square&logo=vue.js&logoColor=white)]()
@@ -50,7 +50,7 @@
 - Docker 多阶段构建
 - GitHub Actions 测试 + 自动打包
 - 一键启动脚本（`.bat` / `.ps1`）
-- Git 版本自动更新
+- 版本管理页：更新实时进度 / 日志、GitHub 仓库地址配置、一键重新克隆
 
 **🔒 安全**
 - 可选 API Token 鉴权
@@ -221,8 +221,32 @@ docker build --build-arg WITH_SCRIPT_DEPS=0 -t coin11-control:slim .
 |------|------|------|
 | `GET` | `/api/health` | 健康检查 |
 | `GET` | `/api/scripts` | 可用脚本列表 |
-| `GET` | `/api/update/check` | 检查更新 |
-| `POST` | `/api/update/pull` | 拉取更新 |
+| `GET` | `/api/update/status` | 仓库 / 部署环境信息（不发起网络请求） |
+| `GET` | `/api/update/check` | 检查任务脚本仓库更新 |
+| `POST` | `/api/update/pull` | 启动异步更新任务（`202`，进度走 `/progress`） |
+| `GET` | `/api/update/progress` | 当前 / 最近一次更新任务的进度与日志 |
+| `GET` / `PUT` | `/api/update/settings` | 读取 / 保存 GitHub 仓库地址与跟踪分支 |
+| `POST` | `/api/update/reclone` | 备份旧目录并重新克隆（需 `{"confirm":true}`） |
+
+### 版本管理（`/updates`）
+
+侧边栏「版本管理」页面用于管理任务脚本仓库（coin11-tb）：
+
+- **实时进度**：更新任务拆成「检查仓库 → 拉取引用 → 比对差异 → 合并更新 → 校验」阶段，
+  页面展示进度条、阶段、耗时与逐行日志；任务在后端进程内运行，**刷新页面可继续接上**。
+- **失败可见**：fetch / checkout / 本地修改等失败原因会原样展示，不再出现"横幅一闪而过"。
+- **仓库地址可配置**：页面可指定任意 GitHub 仓库地址与分支，保存后立即写入现有仓库的
+  `origin`，配置持久化到 `UPDATE_SETTINGS_FILE`（Docker 下为 `/app/data/update_settings.json`）。
+- **重新克隆**：仓库历史分叉或切换仓库时使用；旧目录会改名备份为 `<路径>.bak-<时间戳>`，
+  不会删除。
+
+> 🐳 **Docker 部署**：本页可在容器内更新**任务脚本仓库**（挂载在 `/app/data/coin11_tb`）。
+> 平台本体（后端 + 前端镜像）不支持页面自更新，升级请执行
+> `docker compose pull && docker compose up -d`。
+
+> 🪟 **Windows 挂载修复**：Docker Desktop 把 bind mount 中的文件暴露为 `0777`，
+> 旧版本会因此把每个脚本都判定为"已修改"，`git pull` 直接失败。现在所有 git 命令
+> 都带 `-c core.fileMode=false`，并在启动 / 克隆后写入仓库配置，更新可正常完成。
 
 ---
 
@@ -231,6 +255,42 @@ docker build --build-arg WITH_SCRIPT_DEPS=0 -t coin11-control:slim .
 > 各版本说明已折叠，点击版本行展开详情。
 
 <details open>
+<summary><strong>v0.4.2 (2026-10-19)</strong> — 🔄 版本管理页：更新进度可见 + GitHub 仓库地址可配置</summary>
+
+**✨ 新功能：**
+- 🖥️ **版本管理页 `/updates`** — 环境/版本信息、GitHub 仓库地址与跟踪分支配置、待更新提交列表
+- 📊 **实时更新进度** — 更新任务拆成「检查仓库 → 拉取引用 → 比对差异 → 合并更新 → 校验」五阶段，
+  展示进度条、阶段、耗时与逐行日志；任务在后端进程内运行，**刷新页面可继续接上**
+- 🧾 **失败可见、可重试** — fetch / 本地修改 / 合并失败等原因原样展示，顶部横幅不再"一闪而过"
+- 🧹 **重新克隆** — 旧目录改名备份（`<路径>.bak-<时间戳>`，不删除）后重新 clone，处理历史分叉/切换仓库
+
+**🐛 关键修复：**
+- 🪟 **Docker Desktop（Windows 挂载）下更新总是失败** — bind mount 把所有文件暴露为 `0777`，
+  git 认为每个脚本都被修改过，`git pull` 拒绝执行。所有 git 命令现在带
+  `-c core.fileMode=false`，并在启动/克隆后写入仓库配置
+- 🐛 **点击「立即更新」后横幅立即消失、错误被静默吞掉** — 修复 pull 返回值覆盖 `updateInfo`
+  的状态污染；更新结果与错误现在会持续展示
+- 🌐 **fetch 失败不再伪装成"已是最新"** — 检查结果新增 `fetch_ok` / `warning` 字段
+
+**🔌 API / 部署：**
+- 新增 `GET /api/update/status`、`GET/PUT /api/update/settings`、`GET /api/update/progress`；
+  `POST /api/update/pull` 改为异步任务（`202`），新增 `POST /api/update/reclone`
+- 仓库地址/分支配置持久化到 `UPDATE_SETTINGS_FILE`（Docker 为 `/app/data/update_settings.json`）
+- 🔐 ADB 身份持久卷（`adb-identity:/home/app/.android`），重建容器不丢 adb 密钥
+- 测试增至后端 94 / 前端 200，全部通过
+
+</details>
+
+<details>
+<summary><strong>v0.4.1 (2026-10-04)</strong> — 🐳 Docker WS token 配对 + 局域网网段优先</summary>
+
+- 🔐 WS token 构建期注入，前后端默认配对（避免实时画面/日志静默失效）
+- 🌐 `LAN_SUBNET_OVERRIDE` 优先于自动探测，Docker 部署可指定宿主机真实网段
+- 🐳 Docker Compose 改为直接拉取 GHCR 镜像（`latest`）
+
+</details>
+
+<details>
 <summary><strong>v0.4.0 (2026-10-02)</strong> — 🔀 前端并入 monorepo + 新电脑一键可跑</summary>
 
 - 📦 **前端源码并入仓库内 `frontend/`**，废弃 submodule（原 `sync-frontend-submodule` 工作流删除，CI/Docker 改用仓库内路径）
